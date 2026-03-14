@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/logo.svg" alt="RotaFi Logo" width="200"/>
+  <img src="./assets/rotafi_logo.svg" alt="RotaFi Logo" width="200"/>
 </p>
 
 <h1 align="center">RotaFi</h1>
