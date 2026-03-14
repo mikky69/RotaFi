@@ -22,7 +22,7 @@
 
 ## What is RotaFi?
 
-RotaFi brings the trusted community savings model known as **Ajo**, **Esusu**, and **Chit Funds** on-chain. Groups of participants commit to regular USDC contributions managed entirely by smart contracts — no middleman, no trust required. Each cycle, one member receives the full pot, rotating until everyone has been paid out.
+RotaFi brings the trusted community savings model known as **Ajo**, **Esusu**, and **Chit Funds** on-chain. Groups of participants commit to regular USDC contributions managed entirely by smart contracts no middleman, no trust required. Each cycle, one member receives the full pot, rotating until everyone has been paid out.
 
 Built with OpenZeppelin contracts on Polkadot Hub's EVM layer, RotaFi makes community finance transparent, permissionless, and accessible to anyone with a wallet.
 
@@ -30,7 +30,7 @@ Built with OpenZeppelin contracts on Polkadot Hub's EVM layer, RotaFi makes comm
 
 ## The Problem
 
-Rotating savings groups have existed for centuries across Africa, Asia, and Latin America. They work — but they depend entirely on trust between members and a human organizer who can disappear with the funds, miss a payout, or simply make mistakes. There is no transparency, no enforcement, and no recourse.
+Rotating savings groups have existed for centuries across Africa, Asia, and Latin America. They work but they depend entirely on trust between members and a human organizer who can disappear with the funds, miss a payout, or simply make mistakes. There is no transparency, no enforcement, and no recourse.
 
 RotaFi removes the human middleman and replaces trust with code.
 
