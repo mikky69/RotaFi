@@ -1,0 +1,37 @@
+<svg width="100%" viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg">
+
+
+<!-- Rotating ring of 6 circles representing group members -->
+<!-- Center: 340, 155. Ring radius: 72 -->
+
+<!-- Connector arcs between circles (drawn first, behind) -->
+<circle cx="340" cy="83" r="72" fill="none" stroke="#7F77DD" stroke-width="2.5" stroke-dasharray="18 10" opacity="0.35" style="fill:none;stroke:rgb(127, 119, 221);color:rgb(255, 255, 255);stroke-width:2.5px;stroke-dasharray:18px, 10px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.35;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+<!-- Member circles at 6 positions (60° apart) -->
+<!-- pos 0: top        340, 83  -->
+<!-- pos 1: top-right  402, 119 -->
+<!-- pos 2: bot-right  402, 191 -->
+<!-- pos 3: bottom     340, 227 -->
+<!-- pos 4: bot-left   278, 191 -->
+<!-- pos 5: top-left   278, 119 -->
+
+<circle cx="340" cy="83" r="20" fill="#7F77DD" style="fill:rgb(127, 119, 221);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<circle cx="402" cy="119" r="20" fill="#7F77DD" style="fill:rgb(127, 119, 221);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<circle cx="402" cy="191" r="20" fill="#1D9E75" style="fill:rgb(29, 158, 117);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<circle cx="340" cy="227" r="20" fill="#1D9E75" style="fill:rgb(29, 158, 117);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<circle cx="278" cy="191" r="20" fill="#7F77DD" style="fill:rgb(127, 119, 221);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<circle cx="278" cy="119" r="20" fill="#7F77DD" style="fill:rgb(127, 119, 221);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+<!-- Highlight one circle (top) as "current payout" -->
+<circle cx="340" cy="83" r="20" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.6" style="fill:none;stroke:rgb(255, 255, 255);color:rgb(255, 255, 255);stroke-width:2.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.6;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+<!-- Center coin/dot -->
+<circle cx="340" cy="155" r="22" fill="#1D9E75" style="fill:rgb(29, 158, 117);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<circle cx="340" cy="155" r="14" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.7" style="fill:none;stroke:rgb(255, 255, 255);color:rgb(255, 255, 255);stroke-width:2px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.7;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+<!-- Wordmark -->
+<text x="340" y="284" font-family="system-ui, sans-serif" font-size="42" font-weight="700" text-anchor="middle" letter-spacing="-1" style="fill:rgb(255, 255, 255);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:42px;font-weight:700;text-anchor:middle;dominant-baseline:auto">Rota<tspan fill="#1D9E75" style="fill:rgb(29, 158, 117);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:42px;font-weight:700;text-anchor:middle;dominant-baseline:auto">Fi</tspan></text>
+
+<!-- Tagline -->
+<text x="340" y="314" font-family="system-ui, sans-serif" font-size="13" font-weight="400" text-anchor="middle" letter-spacing="3" style="fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:13px;font-weight:400;text-anchor:middle;dominant-baseline:auto">ROTATING SAVINGS · ON-CHAIN</text>
+</svg>

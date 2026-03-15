@@ -1,0 +1,202 @@
+{
+  "source": {
+    "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "language": "ink! 4.3.0",
+    "compiler": "rustc 1.75.0"
+  },
+  "contract": {
+    "name": "rotafi",
+    "version": "1.0.0",
+    "authors": ["RotaFi"]
+  },
+  "spec": {
+    "constructors": [
+      {
+        "args": [],
+        "docs": ["Instantiate the RotaFi contract."],
+        "label": "new",
+        "payable": false,
+        "returnType": { "displayName": ["ink_primitives", "ConstructorResult"], "type": 0 },
+        "selector": "0x9bae9d5e"
+      }
+    ],
+    "docs": ["RotaFi — on-chain rotating savings circle (Ajo/Esusu)."],
+    "events": [
+      {
+        "args": [
+          { "docs": [], "indexed": true,  "label": "circle_id", "type": { "displayName": ["u32"],        "type": 4 } },
+          { "docs": [], "indexed": true,  "label": "admin",     "type": { "displayName": ["AccountId"],  "type": 2 } },
+          { "docs": [], "indexed": false, "label": "name",      "type": { "displayName": ["String"],     "type": 6 } }
+        ],
+        "docs": ["Emitted when a new circle is created."],
+        "label": "CircleCreated"
+      },
+      {
+        "args": [
+          { "docs": [], "indexed": true, "label": "circle_id", "type": { "displayName": ["u32"],       "type": 4 } },
+          { "docs": [], "indexed": true, "label": "member",    "type": { "displayName": ["AccountId"], "type": 2 } }
+        ],
+        "docs": ["Emitted when a member joins a circle."],
+        "label": "MemberJoined"
+      },
+      {
+        "args": [
+          { "docs": [], "indexed": true, "label": "circle_id", "type": { "displayName": ["u32"],       "type": 4 } },
+          { "docs": [], "indexed": true, "label": "member",    "type": { "displayName": ["AccountId"], "type": 2 } },
+          { "docs": [], "indexed": false,"label": "round",     "type": { "displayName": ["u32"],       "type": 4 } }
+        ],
+        "docs": ["Emitted on successful deposit."],
+        "label": "DepositMade"
+      },
+      {
+        "args": [
+          { "docs": [], "indexed": true,  "label": "circle_id",  "type": { "displayName": ["u32"],       "type": 4 } },
+          { "docs": [], "indexed": true,  "label": "recipient",  "type": { "displayName": ["AccountId"], "type": 2 } },
+          { "docs": [], "indexed": false, "label": "amount",     "type": { "displayName": ["u128"],      "type": 5 } },
+          { "docs": [], "indexed": false, "label": "round",      "type": { "displayName": ["u32"],       "type": 4 } }
+        ],
+        "docs": ["Emitted when the pot is paid out for a round."],
+        "label": "PotPaidOut"
+      }
+    ],
+    "messages": [
+      {
+        "args": [
+          { "label": "name",            "type": { "displayName": ["String"],     "type": 6 } },
+          { "label": "member_cap",      "type": { "displayName": ["u32"],        "type": 4 } },
+          { "label": "deposit_amount",  "type": { "displayName": ["u128"],       "type": 5 } },
+          { "label": "cycle_seconds",   "type": { "displayName": ["u64"],        "type": 7 } },
+          { "label": "usdc_address",    "type": { "displayName": ["AccountId"],  "type": 2 } }
+        ],
+        "docs": ["Create a new circle. Caller becomes admin and first member."],
+        "label": "createCircle",
+        "mutates": true,
+        "payable": false,
+        "returnType": { "displayName": ["Result"], "type": 1 },
+        "selector": "0x11111111"
+      },
+      {
+        "args": [
+          { "label": "circle_id", "type": { "displayName": ["u32"], "type": 4 } }
+        ],
+        "docs": ["Join an open circle. PSP22 allowance must be set first."],
+        "label": "joinCircle",
+        "mutates": true,
+        "payable": false,
+        "returnType": { "displayName": ["Result"], "type": 1 },
+        "selector": "0x22222222"
+      },
+      {
+        "args": [
+          { "label": "circle_id", "type": { "displayName": ["u32"], "type": 4 } }
+        ],
+        "docs": ["Deposit into the current round. Must not have deposited yet."],
+        "label": "deposit",
+        "mutates": true,
+        "payable": false,
+        "returnType": { "displayName": ["Result"], "type": 1 },
+        "selector": "0x33333333"
+      },
+      {
+        "args": [
+          { "label": "circle_id", "type": { "displayName": ["u32"], "type": 4 } }
+        ],
+        "docs": ["Trigger payout to the current round recipient. All members must have deposited."],
+        "label": "triggerPayout",
+        "mutates": true,
+        "payable": false,
+        "returnType": { "displayName": ["Result"], "type": 1 },
+        "selector": "0x44444444"
+      },
+      {
+        "args": [
+          { "label": "circle_id", "type": { "displayName": ["u32"], "type": 4 } }
+        ],
+        "docs": ["Get full circle state."],
+        "label": "getCircle",
+        "mutates": false,
+        "payable": false,
+        "returnType": { "displayName": ["Option", "CircleView"], "type": 8 },
+        "selector": "0x55555555"
+      },
+      {
+        "args": [
+          { "label": "member", "type": { "displayName": ["AccountId"], "type": 2 } }
+        ],
+        "docs": ["Get all circle IDs a member belongs to."],
+        "label": "getCirclesByMember",
+        "mutates": false,
+        "payable": false,
+        "returnType": { "displayName": ["Vec", "u32"], "type": 9 },
+        "selector": "0x66666666"
+      },
+      {
+        "args": [],
+        "docs": ["Get all open (not-yet-full) circles."],
+        "label": "getOpenCircles",
+        "mutates": false,
+        "payable": false,
+        "returnType": { "displayName": ["Vec", "CircleView"], "type": 10 },
+        "selector": "0x77777777"
+      },
+      {
+        "args": [
+          { "label": "circle_id", "type": { "displayName": ["u32"], "type": 4 } }
+        ],
+        "docs": ["Get current round info for a circle."],
+        "label": "getCurrentRound",
+        "mutates": false,
+        "payable": false,
+        "returnType": { "displayName": ["Option", "RoundView"], "type": 11 },
+        "selector": "0x88888888"
+      }
+    ]
+  },
+  "types": [
+    { "id": 0, "type": { "def": { "primitive": "bool" } } },
+    { "id": 1, "type": { "def": { "variant": { "variants": [{ "fields": [{"type": 0}], "index": 0, "name": "Ok" }, { "fields": [{"type": 3}], "index": 1, "name": "Err" }] } } } },
+    { "id": 2, "type": { "def": { "composite": { "fields": [{ "type": 12 }] } }, "path": ["ink_primitives", "types", "AccountId"] } },
+    { "id": 3, "type": { "def": { "variant": { "variants": [{ "index": 0, "name": "NotMember" }, { "index": 1, "name": "CircleFull" }, { "index": 2, "name": "AlreadyMember" }, { "index": 3, "name": "AlreadyDeposited" }, { "index": 4, "name": "RoundNotComplete" }, { "index": 5, "name": "CircleNotFound" }, { "index": 6, "name": "TransferFailed" }, { "index": 7, "name": "NotAdmin" }] } }, "path": ["rotafi", "rotafi", "Error"] } },
+    { "id": 4, "type": { "def": { "primitive": "u32" } } },
+    { "id": 5, "type": { "def": { "primitive": "u128" } } },
+    { "id": 6, "type": { "def": { "primitive": "str" } } },
+    { "id": 7, "type": { "def": { "primitive": "u64" } } },
+    { "id": 8, "type": { "def": { "variant": { "variants": [{ "index": 0, "name": "None" }, { "fields": [{"type": 13}], "index": 1, "name": "Some" }] } } } },
+    { "id": 9, "type": { "def": { "sequence": { "type": 4 } } } },
+    { "id": 10, "type": { "def": { "sequence": { "type": 13 } } } },
+    { "id": 11, "type": { "def": { "variant": { "variants": [{ "index": 0, "name": "None" }, { "fields": [{"type": 14}], "index": 1, "name": "Some" }] } } } },
+    { "id": 12, "type": { "def": { "array": { "len": 32, "type": 0 } } } },
+    {
+      "id": 13,
+      "type": {
+        "def": { "composite": { "fields": [
+          { "name": "id",             "type": 4 },
+          { "name": "name",           "type": 6 },
+          { "name": "admin",          "type": 2 },
+          { "name": "member_cap",     "type": 4 },
+          { "name": "member_count",   "type": 4 },
+          { "name": "deposit_amount", "type": 5 },
+          { "name": "cycle_seconds",  "type": 7 },
+          { "name": "current_round",  "type": 4 },
+          { "name": "total_rounds",   "type": 4 },
+          { "name": "is_active",      "type": 0 },
+          { "name": "usdc_address",   "type": 2 }
+        ] } },
+        "path": ["rotafi", "rotafi", "CircleView"]
+      }
+    },
+    {
+      "id": 14,
+      "type": {
+        "def": { "composite": { "fields": [
+          { "name": "round_index",    "type": 4 },
+          { "name": "recipient",      "type": 2 },
+          { "name": "deposits_in",    "type": 4 },
+          { "name": "deposits_needed","type": 4 },
+          { "name": "deadline",       "type": 7 }
+        ] } },
+        "path": ["rotafi", "rotafi", "RoundView"]
+      }
+    }
+  ]
+}

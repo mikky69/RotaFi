@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&family=DM+Mono:wght@400;500&display=swap');
+
+/* ── Dark theme (default) ──────────────────────────────────────────────────── */
+:root,
+[data-theme="dark"] {
+  --bg:        #0D0D0F;
+  --surface:   #141416;
+  --card:      #1A1A1D;
+  --card-h:    #1F1F23;
+  --sidebar:   #111114;
+  --input-bg:  #0D0D0F;
+
+  --border:    #242428;
+  --border-h:  #383840;
+
+  --pink:      #E6007A;
+  --pink-l:    #FF3399;
+  --pink-d:    #8B004A;
+  --pink-dim:  rgba(230,0,122,0.10);
+  --pink-glow: rgba(230,0,122,0.18);
+
+  --text:      #F0F0F2;
+  --muted:     #6B6B7A;
+  --dim:       #2E2E35;
+
+  --ok:        #56C870;
+  --ok-bg:     rgba(86,200,112,0.08);
+  --ok-bdr:    rgba(86,200,112,0.25);
+
+  --err:       #E85454;
+  --err-bg:    rgba(232,84,84,0.08);
+  --err-bdr:   rgba(232,84,84,0.25);
+
+  --warn:      #F59E0B;
+  --warn-bg:   rgba(245,158,11,0.08);
+  --warn-bdr:  rgba(245,158,11,0.25);
+
+  --purple:    #7C3AED;
+  --purple-dim:rgba(124,58,237,0.12);
+
+  color-scheme: dark;
+}
+
+/* ── Light theme ───────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg:        #F4F4F6;
+  --surface:   #FFFFFF;
+  --card:      #FFFFFF;
+  --card-h:    #F8F6FC;
+  --sidebar:   #FAFAFA;
+  --input-bg:  #F4F4F6;
+
+  --border:    #E2E2E8;
+  --border-h:  #C8C8D4;
+
+  --pink:      #C8005E;
+  --pink-l:    #E6007A;
+  --pink-d:    #8B004A;
+  --pink-dim:  rgba(200,0,94,0.07);
+  --pink-glow: rgba(200,0,94,0.14);
+
+  --text:      #111118;
+  --muted:     #72728A;
+  --dim:       #D4D4E0;
+
+  --ok:        #1A9E40;
+  --ok-bg:     rgba(26,158,64,0.07);
+  --ok-bdr:    rgba(26,158,64,0.22);
+
+  --err:       #C53030;
+  --err-bg:    rgba(197,48,48,0.07);
+  --err-bdr:   rgba(197,48,48,0.22);
+
+  --warn:      #B45309;
+  --warn-bg:   rgba(180,83,9,0.07);
+  --warn-bdr:  rgba(180,83,9,0.22);
+
+  --purple:    #6D28D9;
+  --purple-dim:rgba(109,40,217,0.08);
+
+  color-scheme: light;
+}
+
+/* ── Reset ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+button  { cursor: pointer; border: none; background: none; font-family: inherit; font-size: inherit; }
+input, select, textarea { font-family: inherit; font-size: inherit; }
+a { color: inherit; text-decoration: none; }
+
+::-webkit-scrollbar        { width: 4px; height: 4px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 4px; }
+
+@keyframes fadeUp   { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+@keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
+@keyframes slideIn  { from { opacity:0; transform:translateX(-8px); } to { opacity:1; transform:none; } }
+@keyframes slideUp  { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:none; } }
+@keyframes spin     { to { transform: rotate(360deg); } }
+@keyframes pulseDot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.5; transform:scale(.8); } }
+
+/* Smooth theme transition on all elements */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 0.18s;
+  transition-timing-function: ease;
+}
+/* But not transitions on animations or transforms */
+[style*="animation"], button:active { transition: none !important; }
