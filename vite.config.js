@@ -1,26 +1,25 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    tailwindcss(),
+    react(),
+  ],
   define: {
     global: 'globalThis',
     'process.env': {},
   },
+
   resolve: {
     alias: {
       '@': '/src',
     },
   },
-  optimizeDeps: {
-    include: [
-      '@polkadot/api',
-      '@polkadot/api-contract',
-      '@polkadot/extension-dapp',
-    ],
-  },
+
   server: {
     port: 3000,
-    host: '0.0.0.0'
-  }
+    host: '0.0.0.0',
+  },
 });

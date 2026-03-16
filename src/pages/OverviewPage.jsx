@@ -123,7 +123,7 @@ export default function OverviewPage({ account, circles }) {
         </div>
         <span style={{ color:T.muted }}>Polkadot Testnet</span>
         <span style={{ color:T.muted, fontFamily:"'DM Mono',monospace", fontSize:11 }}>{sh(account?.address)}</span>
-        <span style={{ color:T.muted }}>ink! <span style={{ color:T.pink }}>v4.3</span></span>
+        <span style={{ color:T.muted }}>sol <span style={{ color:T.pink }}>v0.8</span></span>
       </div>
     </div>
   );

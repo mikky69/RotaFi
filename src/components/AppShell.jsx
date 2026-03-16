@@ -12,13 +12,14 @@ import { useLocation, Link } from 'react-router-dom';
 import { T, sans } from '../theme.js';
 import { useAppState } from '../hooks/useAppState.jsx';
 import { useTheme } from '../hooks/useTheme.jsx';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const NAV = [
-  { path:'/app',         exact:true,  label:'Overview',   icon:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
-  { path:'/app/circles', exact:false, label:'My Circles', icon:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2|M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8' },
-  { path:'/app/join',    exact:false, label:'Join',       icon:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M12 3a4 4 0 0 1 0 8|M19 8v6M22 11h-6' },
-  { path:'/app/history', exact:false, label:'History',    icon:'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z|M14 2v6h6|M16 13H8|M16 17H8|M10 9H8' },
-  { path:'/app/profile', exact:false, label:'Profile',    icon:'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2|M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8' },
+  { path: '/app', exact: true, label: 'Overview', icon: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
+  { path: '/app/circles', exact: false, label: 'My Circles', icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2|M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8' },
+  { path: '/app/join', exact: false, label: 'Join', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M12 3a4 4 0 0 1 0 8|M19 8v6M22 11h-6' },
+  { path: '/app/history', exact: false, label: 'History', icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z|M14 2v6h6|M16 13H8|M16 17H8|M10 9H8' },
+  { path: '/app/profile', exact: false, label: 'Profile', icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2|M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8' },
 ];
 
 function Ico({ d, size = 18 }) {
@@ -119,10 +120,10 @@ function SidebarItem({ item, collapsed }) {
         padding: collapsed ? '9px 10px' : '9px 12px',
         justifyContent: collapsed ? 'center' : 'flex-start',
         borderRadius: 8,
-        background:  isActive ? T.pinkDim : hov ? T.card : 'transparent',
-        color:       isActive ? T.pink    : hov ? T.text : T.muted,
-        border:      isActive ? `1px solid ${T.pinkD}50` : '1px solid transparent',
-        transition:  'all .15s',
+        background: isActive ? T.pinkDim : hov ? T.card : 'transparent',
+        color: isActive ? T.pink : hov ? T.text : T.muted,
+        border: isActive ? `1px solid ${T.pinkD}50` : '1px solid transparent',
+        transition: 'all .15s',
         fontFamily: sans, fontSize: 14, fontWeight: isActive ? 500 : 400,
         whiteSpace: 'nowrap', overflow: 'hidden',
       }}>
@@ -170,8 +171,80 @@ function BottomBar() {
   );
 }
 
+// ── Custom Connect Button ─────────────────────────────────────────────────────
+function CustomConnect({ collapsed }) {
+  return (
+    <ConnectButton.Custom>
+      {({ account, chain, openAccountModal, openChainModal, openConnectModal, mounted }) => {
+        const ready = mounted;
+        const connected = ready && account && chain;
+
+        if (!ready) return null;
+
+        if (!connected) {
+          return (
+            <button onClick={openConnectModal} type="button" style={{
+              width: '100%', padding: collapsed ? '9px 0' : '9px 12px',
+              borderRadius: 8, border: 'none', background: T.pink, color: '#fff',
+              fontSize: 13, fontWeight: 600, fontFamily: sans, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              transition: 'background .15s'
+            }}>
+              {collapsed ? <Ico d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z|M12 9v4|M12 17h.01" size={16} /> : 'Connect'}
+            </button>
+          );
+        }
+
+        if (chain.unsupported) {
+          return (
+            <button onClick={openChainModal} type="button" style={{
+              width: '100%', padding: collapsed ? '9px 0' : '9px 12px',
+              borderRadius: 8, border: `1px solid ${T.err}`, background: T.errBg, color: T.err,
+              fontSize: 13, fontWeight: 600, fontFamily: sans, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}>
+              {collapsed ? <Ico d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" size={16} /> : 'Wrong network'}
+            </button>
+          );
+        }
+
+        return (
+          <div style={{ display: 'flex', flexDirection: collapsed ? 'column' : 'row', gap: 6, width: '100%' }}>
+            <button
+              onClick={openChainModal}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: collapsed ? '8px 0' : '8px 10px', borderRadius: 8, background: T.card, border: `1px solid ${T.border}`, cursor: 'pointer', transition: 'all .15s' }}
+              title={chain.name}
+            >
+              {chain.hasIcon && (
+                <div style={{ background: chain.iconBackground, width: 16, height: 16, borderRadius: '50%', overflow: 'hidden' }}>
+                  {chain.iconUrl && <img alt={chain.name ?? 'Chain icon'} src={chain.iconUrl} style={{ width: 16, height: 16 }} />}
+                </div>
+              )}
+              {!collapsed && <span style={{ color: T.text, fontSize: 13, fontWeight: 500, fontFamily: sans }}>{chain.name}</span>}
+            </button>
+
+            <button onClick={openAccountModal} type="button" style={{
+              flex: 1, padding: collapsed ? '8px 0' : '8px 12px', borderRadius: 8, background: T.surface, border: `1px solid ${T.border}`, cursor: 'pointer', transition: 'all .15s',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+            }}>
+              <div style={{ width: 22, height: 22, borderRadius: '50%', background: T.pinkDim, border: `1px solid ${T.pink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                {account.ensAvatar ? <img src={account.ensAvatar} alt="ENS" style={{ width: 20, height: 20 }} /> : <span style={{ fontSize: 10, fontWeight: 700, color: T.pink }}>{account.displayName.slice(0, 2)}</span>}
+              </div>
+              {!collapsed && (
+                <span style={{ color: T.text, fontSize: 13, fontWeight: 600, fontFamily: sans }}>
+                  {account.displayName}
+                </span>
+              )}
+            </button>
+          </div>
+        );
+      }}
+    </ConnectButton.Custom>
+  );
+}
+
 // ── Mobile top bar ────────────────────────────────────────────────────────────
-function MobileTopBar({ initials, avatarColor }) {
+function MobileTopBar() {
   return (
     <header style={{
       position: 'sticky', top: 0, zIndex: 100,
@@ -181,23 +254,15 @@ function MobileTopBar({ initials, avatarColor }) {
       justifyContent: 'space-between', padding: '0 16px', gap: 10,
     }}>
       <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}>
-        <div style={{ width: 26, height: 26, borderRadius: 7, background: T.pink, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-          </svg>
+        <div style={{ width: 26, height: 26, borderRadius: 7, background: T.transparent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <img src="/rotafi_logo.svg" alt="" width='26px' height='26px' />
         </div>
         <span style={{ fontFamily: "'Sora',sans-serif", fontSize: 16, fontWeight: 700, color: T.text }}>RotaFi</span>
       </Link>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {/* Theme toggle icon */}
         <ThemeToggleIcon />
-        {/* Avatar → profile */}
-        <Link to="/app/profile" style={{ textDecoration: 'none', flexShrink: 0 }}>
-          <div style={{ width: 32, height: 32, borderRadius: '50%', background: avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', fontFamily: "'Sora',sans-serif" }}>
-            {initials}
-          </div>
-        </Link>
+        <CustomConnect collapsed={true} />
       </div>
     </header>
   );
@@ -206,19 +271,13 @@ function MobileTopBar({ initials, avatarColor }) {
 // ── AppShell ──────────────────────────────────────────────────────────────────
 export default function AppShell({ children }) {
   const { isMobile, isTablet } = useBreakpoint();
-  const { account, displayName, profile, handleDisconnect } = useAppState();
-  const [discHov, setDiscHov] = useState(false);
-
   const collapsed = isTablet;
-  const sh = a => a ? a.slice(0, 6) + '...' + a.slice(-4) : '';
-  const initials = displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?';
-  const avatarColor = profile?.avatarColor || 'var(--pink)';
 
   // ── Mobile ────────────────────────────────────────────────────────────────
   if (isMobile) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: T.bg }}>
-        <MobileTopBar initials={initials} avatarColor={avatarColor} />
+        <MobileTopBar />
         <main style={{ flex: 1, overflowY: 'auto', paddingBottom: 70 }}>
           {children}
         </main>
@@ -272,46 +331,10 @@ export default function AppShell({ children }) {
           {NAV.map(item => <SidebarItem key={item.path} item={item} collapsed={collapsed} />)}
         </nav>
 
-        {/* Bottom: theme toggle + wallet + disconnect */}
+        {/* Bottom: theme toggle + wallet */}
         <div style={{ padding: collapsed ? '8px 5px' : '10px 8px', borderTop: `1px solid ${T.border}`, flexShrink: 0 }}>
           <ThemeToggle collapsed={collapsed} />
-
-          {!collapsed && (
-            <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 9, padding: '10px 12px', marginBottom: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                <div style={{ width: 28, height: 28, borderRadius: '50%', background: avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', fontFamily: "'Sora',sans-serif", flexShrink: 0 }}>
-                  {initials}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ color: T.text, fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</div>
-                  <div style={{ color: T.muted, fontSize: 11, fontFamily: "'DM Mono',monospace" }}>{sh(account?.address)}</div>
-                </div>
-                <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--ok)', boxShadow: '0 0 4px var(--ok)', flexShrink: 0 }} />
-              </div>
-            </div>
-          )}
-
-          <button
-            onClick={handleDisconnect}
-            onMouseEnter={() => setDiscHov(true)}
-            onMouseLeave={() => setDiscHov(false)}
-            title={collapsed ? 'Disconnect' : undefined}
-            style={{
-              width: '100%', padding: collapsed ? '9px 0' : '8px 12px', borderRadius: 7,
-              border: `1px solid ${discHov ? T.errBdr : T.border}`,
-              color:      discHov ? T.err  : T.muted,
-              background: discHov ? T.errBg : 'none',
-              fontSize: 13, fontFamily: sans, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: collapsed ? 0 : 7, transition: 'all .15s',
-            }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16 17 21 12 16 7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
-            {!collapsed && 'Disconnect'}
-          </button>
+          <CustomConnect collapsed={collapsed} />
         </div>
       </aside>
 

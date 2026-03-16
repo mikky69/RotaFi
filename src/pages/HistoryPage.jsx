@@ -7,7 +7,12 @@ const $ = n => '$' + Number(n||0).toLocaleString('en', {minimumFractionDigits:2,
 const sh = a => a ? a.slice(0,8)+'...'+a.slice(-4) : '';
 
 export default function HistoryPage({ circles }) {
-  const allHistory  = circles.flatMap(c => (c.payoutHistory||[]).map(h => ({ ...h, type:'payout',  circleName:c.name, circleId:c.id }))).sort((a,b) => new Date(b.date)-new Date(a.date));
+  const allHistory  = circles.flatMap(c => 
+    (c.payoutHistory||[])
+      .filter(h => h.recipientName === 'You')
+      .map(h => ({ ...h, type:'payout',  circleName:c.name, circleId:c.id }))
+  ).sort((a,b) => new Date(b.date)-new Date(a.date));
+
   const allDeposits = circles.filter(c=>c.hasPaid).map(c => ({ type:'deposit', circleName:c.name, circleId:c.id, amount:c.depositAmount, round:c.currentRound, date:'This cycle', txHash:null, recipientName:null }));
   const rows = [...allHistory, ...allDeposits];
 
