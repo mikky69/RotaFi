@@ -93,7 +93,7 @@ export default function LandingPage() {
           <p style={{ color: T.muted, fontSize: 'clamp(15px, 2.5vw, 18px)', lineHeight: 1.75, maxWidth: 540, margin: '0 auto 48px', fontWeight: 300 }}>
             RotaFi brings the Ajo, Esusu, and Chit fund tradition to Polkadot.
             Groups pool USDC together each cycle. A smart contract guarantees
-            every member receives the pot — no middleman required.
+            every member receives the pot no middleman required.
           </p>
 
           <ConnectButton.Custom>
