@@ -22,7 +22,7 @@
 
 ## What is RotaFi?
 
-RotaFi brings the trusted community savings model known as **Ajo**, **Esusu**, and **Chit Funds** on-chain. Groups of participants commit to regular contributions in **USDC, DOT, or any ERC20 token**, managed entirely by smart contracts—no middleman, no trust required. Each cycle, one member receives the full pot, rotating until everyone has been paid out.
+RotaFi brings the trusted community savings model known as **Ajo**, **Esusu**, and **Chit Funds** on-chain. Groups of participants commit to regular contributions in **USDC, DOT, or any ERC20 token**, managed entirely by smart contracts no middleman, no trust required. Each cycle, one member receives the full pot, rotating until everyone has been paid out.
 
 **Now featuring Multi-Token Support and Automatic Payouts.**
 
