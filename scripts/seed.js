@@ -10,7 +10,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ── Helper ────────────────────────────────────────────────────────────────
 const USDC_DECIMALS = 6n;
+const DOT_DECIMALS  = 10n;
 const toUSDC = (amount) => BigInt(amount) * 10n ** USDC_DECIMALS;
+const toDOT  = (amount) => BigInt(amount) * 10n ** DOT_DECIMALS;
 
 async function main() {
   // Load deployed addresses
@@ -35,14 +37,16 @@ async function main() {
   console.log(`   Carol    : ${carol.address}\n`);
 
   const polUsdc = await ethers.getContractAt("PolUSDC", deployments.PolUSDC);
+  const polDot  = await ethers.getContractAt("PolDOT", deployments.PolDOT);
   const factory = await ethers.getContractAt("RotaFiFactory", deployments.RotaFiFactory);
 
   // ── 1. Fund test wallets with PolUSDC ────────────────────────────────────
-  console.log("💰 Minting PolUSDC to test accounts...");
-  const mintAmount = toUSDC(5000); // 5,000 USDC each
-  for (const [name, signer] of [["Alice", alice], ["Bob", bob], ["Carol", carol]]) {
-    await polUsdc.mint(signer.address, mintAmount);
-    console.log(`   ✓ ${name} funded with 5,000 USDC`);
+  const mintAmountUSDC = toUSDC(5000); // 5,000 USDC each
+  const mintAmountDOT  = toDOT(100);   // 100 DOT each
+  for (const [name, signer] of [["Alice", alice], ["Bob", bob], ["Carol", carol], ["Deployer", deployer]]) {
+    await polUsdc.connect(deployer).mint(signer.address, mintAmountUSDC);
+    await polDot.connect(deployer).mint(signer.address, mintAmountDOT);
+    console.log(`   ✓ ${name} funded with 5,000 USDC and 100 DOT`);
   }
 
   // ── 2. Create circle #1 — "Lagos Savers" (3 members, 50 USDC, weekly) ─
@@ -86,33 +90,27 @@ async function main() {
   console.log("   ✓ Alice deposited round 1");
 
   await circle1.connect(bob).deposit();
-  console.log("   ✓ Bob deposited round 1 — pot ready!");
+  console.log("   ✓ Bob deposited round 1 — AUTOMATIC PAYOUT TRIGGERED! 🚀");
 
-  // ── 3. Create circle #2 — "Abuja Monthly" (5 members, 100 USDC, not yet full)
-  console.log("\n⭕ Creating circle: Abuja Monthly...");
-  const tx2 = await factory.connect(deployer).createCircle(
-    "Abuja Monthly",
-    5,
-    toUSDC(100),
-    2592000n, // 30 days
-    deployments.PolUSDC,
+  // ── 4. Create circle #3 — "Paseo DOT" (3 members, 10 DOT, weekly) ────────
+  console.log("\n⭕ Creating circle: Paseo DOT...");
+  const tx3 = await factory.connect(deployer).createCircle(
+    "Paseo DOT",
+    3,
+    toDOT(10),
+    604800n,
+    deployments.PolDOT,
   );
-  const receipt2 = await tx2.wait();
-  const circleAddr2 = receipt2.logs
+  const receipt3 = await tx3.wait();
+  const circleAddr3 = receipt3.logs
     .map(log => { try { return factory.interface.parseLog(log); } catch { return null; } })
     .find(e => e?.name === "CircleDeployed")?.args?.circleAddress;
 
-  console.log(`   ✓ Abuja Monthly deployed → ${circleAddr2}`);
-
-  const circle2 = await ethers.getContractAt("RotaFiCircle", circleAddr2);
-  await polUsdc.connect(alice).approve(circleAddr2, toUSDC(1000));
-  await circle2.connect(alice).joinCircle();
-  await factory.connect(alice).recordJoin(circleAddr2);
-  console.log("   ✓ Alice joined (3 spots still open)");
+  console.log(`   ✓ Paseo DOT deployed → ${circleAddr3}`);
 
   console.log(`\n✅ Seed complete!\n`);
-  console.log(`   Circle 1 "Lagos Savers"  → ${circleAddr1} (active, round 1 deposits in)`);
-  console.log(`   Circle 2 "Abuja Monthly" → ${circleAddr2} (open, 3 spots left)\n`);
+  console.log(`   Circle 1 "Lagos Savers"  → ${circleAddr1} (active, round 2 started)`);
+  console.log(`   Circle 3 "Paseo DOT"     → ${circleAddr3} (open, 2 spots left)\n`);
 }
 
 main().catch((err) => {

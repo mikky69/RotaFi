@@ -6,7 +6,7 @@ import { ADDRESSES, PolUSDCABI, RotaFiCircleABI, RotaFiFactoryABI } from '../con
 import { T, sans } from '../theme.js';
 import { Ring, Tag, GoldButton, Spinner, Avatar } from '../components/ui.jsx';
 
-const $ = n => '$' + Number(n || 0).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const $ = (n, symbol = '$') => symbol + Number(n || 0).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const sh = a => a ? a.slice(0, 8) + '...' + a.slice(-4) : '';
 
 export default function CircleDetailPage({ circle, isMember, connected, onBack, onDeposit, onTriggerPayout, onJoin, onRefresh }) {
@@ -16,19 +16,19 @@ export default function CircleDetailPage({ circle, isMember, connected, onBack, 
   const { writeContractAsync } = useWriteContract();
 
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
-    address: ADDRESSES.PolUSDC,
+    address: circle.tokenAddress,
     abi: PolUSDCABI,
     functionName: 'allowance',
     args: [userAddress, circle.contractAddress],
-    query: { enabled: !!userAddress && !!circle.contractAddress }
+    query: { enabled: !!userAddress && !!circle.contractAddress && !!circle.tokenAddress }
   });
 
-  const { data: usdcBalance, refetch: refetchBalance } = useReadContract({
-    address: ADDRESSES.PolUSDC,
+  const { data: tokenBalance, refetch: refetchBalance } = useReadContract({
+    address: circle.tokenAddress,
     abi: PolUSDCABI,
     functionName: 'balanceOf',
     args: [userAddress],
-    query: { enabled: !!userAddress && !!ADDRESSES.PolUSDC }
+    query: { enabled: !!userAddress && !!circle.tokenAddress }
   });
 
   const [triggering, setTriggering] = useState(false);
@@ -51,8 +51,8 @@ export default function CircleDetailPage({ circle, isMember, connected, onBack, 
   const isLate = circle.deadline > 0 && now > circle.deadline;
   const timeRemaining = circle.deadline > now ? circle.deadline - now : 0;
 
-  const requiredDepositBigInt = circle.depositAmount ? parseUnits(circle.depositAmount.toString(), 6) : 0n;
-  const hasEnoughUSDC = usdcBalance !== undefined && usdcBalance >= requiredDepositBigInt;
+  const requiredDepositBigInt = circle.depositAmount ? parseUnits(circle.depositAmount.toString(), circle.tokenDecimals || 6) : 0n;
+  const hasEnoughToken = tokenBalance !== undefined && tokenBalance >= requiredDepositBigInt;
 
   const formatTime = (seconds) => {
     if (circle.deadline === 0) return 'Waiting for members...';
@@ -70,12 +70,12 @@ export default function CircleDetailPage({ circle, isMember, connected, onBack, 
     if (!circle.depositAmount || !circle.contractAddress) return;
     setDepositing(true);
     try {
-      const amountBigInt = parseUnits(circle.depositAmount.toString(), 6);
+      const amountBigInt = parseUnits(circle.depositAmount.toString(), circle.tokenDecimals || 6);
       
       // Check allowance and approve if needed
       if (!allowance || allowance < amountBigInt) {
         const approveHash = await writeContractAsync({
-          address: ADDRESSES.PolUSDC,
+          address: circle.tokenAddress,
           abi: PolUSDCABI,
           functionName: 'approve',
           args: [circle.contractAddress, amountBigInt],
@@ -111,7 +111,7 @@ export default function CircleDetailPage({ circle, isMember, connected, onBack, 
     setClaiming(true);
     try {
       const txHash = await writeContractAsync({
-        address: ADDRESSES.PolUSDC,
+        address: circle.tokenAddress,
         abi: PolUSDCABI,
         functionName: 'faucet',
       });
@@ -153,9 +153,9 @@ export default function CircleDetailPage({ circle, isMember, connected, onBack, 
   const doJoin = async () => {
     setJoining(true);
     try {
-      const amountToApprove = parseUnits(circle.depositAmount.toString(), 6);
+      const amountToApprove = parseUnits(circle.depositAmount.toString(), circle.tokenDecimals || 6);
       if (!allowance || allowance < amountToApprove) {
-        const approveHash = await writeContractAsync({ address: ADDRESSES.PolUSDC, abi: PolUSDCABI, functionName: 'approve', args: [circle.contractAddress, amountToApprove] });
+        const approveHash = await writeContractAsync({ address: circle.tokenAddress, abi: PolUSDCABI, functionName: 'approve', args: [circle.contractAddress, amountToApprove] });
         await publicClient.waitForTransactionReceipt({ hash: approveHash });
       }
       
@@ -240,8 +240,8 @@ export default function CircleDetailPage({ circle, isMember, connected, onBack, 
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ color: T.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Pot this cycle</div>
-              <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 30, fontWeight: 700, color: T.pink, lineHeight: 1 }}>{$(circle.pot)}</div>
-              <div style={{ color: T.muted, fontSize: 12, marginTop: 6 }}>{$(circle.depositAmount)}/member · {circle.memberCount} members</div>
+              <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 30, fontWeight: 700, color: T.pink, lineHeight: 1 }}>{$(circle.pot, '')} <span style={{fontSize: 14}}>{circle.tokenSymbol || 'USDC'}</span></div>
+              <div style={{ color: T.muted, fontSize: 12, marginTop: 6 }}>{$(circle.depositAmount, '')} {circle.tokenSymbol || 'USDC'}/member · {circle.memberCount} members</div>
               {recipient && <div style={{ color: T.muted, fontSize: 12, marginTop: 4 }}>Receiving: <span style={{ color: T.text }}>{recipient.name}</span></div>}
               {circle.isActive && circle.currentRound > 0 && (
                 <div style={{ color: isLate ? T.warn : T.ok, fontSize: 12, marginTop: 4, fontWeight: 500 }}>
@@ -281,21 +281,21 @@ export default function CircleDetailPage({ circle, isMember, connected, onBack, 
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.err} strokeWidth="2" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></svg>
               <div style={{ flex: 1 }}>
                 <div style={{ color: T.text, fontWeight: 500, fontSize: 14, marginBottom: 3 }}>Deposit required</div>
-                <div style={{ color: T.muted, fontSize: 13, marginBottom: 10 }}>{$(circle.depositAmount)} USDC due for round {circle.currentRound}</div>
-                {hasEnoughUSDC ? (
-                  <GoldButton onClick={doDeposit} disabled={depositing} style={{ padding: '9px 16px', fontSize: 13 }}>
-                    {depositing && <Spinner size={13} color="#fff" />}
-                    {depositing ? 'Processing...' : 'Deposit USDC'}
+                <div style={{ color: T.muted, fontSize: 13, marginBottom: 10 }}>{$(circle.depositAmount, '')} {circle.tokenSymbol || 'USDC'} due for round {circle.currentRound}</div>
+                {!circle.hasPaid ? (
+                  <GoldButton onClick={doDeposit} disabled={depositing} style={{ width:'100%', padding:'12px', fontSize:15 }}>
+                    {depositing && <Spinner size={16} color="#fff" />}
+                    {depositing ? `Processing...` : `Deposit ${$(circle.depositAmount, '')} ${circle.tokenSymbol || 'USDC'}`}
                   </GoldButton>
                 ) : (
                   <div style={{ marginTop: 6, padding: '10px 14px', background: T.card, borderRadius: 8, border: `1px solid ${T.border}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                      <div style={{ color: T.text, fontSize: 13 }}>Insufficient USDC balance.</div>
+                      <div style={{ color: T.text, fontSize: 13 }}>Insufficient {circle.tokenSymbol || 'USDC'} balance.</div>
                       <button onClick={doClaimFaucet} disabled={claiming} style={{ padding: '6px 12px', borderRadius: 6, background: T.pink, color: '#fff', border: 'none', fontSize: 12, fontWeight: 500, fontFamily: sans, cursor: claiming ? 'not-allowed' : 'pointer' }}>
-                        {claiming ? 'Claiming...' : 'Claim 1,000 Test USDC'}
+                        {claiming ? 'Claiming...' : `Claim 1,000 Test ${circle.tokenSymbol || 'USDC'}`}
                       </button>
                     </div>
-                    <div style={{ color: T.muted, fontSize: 11, marginTop: 4 }}>Mint free testnet tokens from the PolUSDC faucet to fund your deposits.</div>
+                    <div style={{ color: T.muted, fontSize: 11, marginTop: 4 }}>Mint free testnet tokens from the faucet to fund your deposits.</div>
                   </div>
                 )}
               </div>
@@ -316,7 +316,7 @@ export default function CircleDetailPage({ circle, isMember, connected, onBack, 
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="2" style={{ flexShrink: 0, marginTop: 1 }}><polyline points="20 6 9 17 4 12" /></svg>
             <div style={{ flex: 1 }}>
               <div style={{ color: T.text, fontWeight: 500, fontSize: 14, marginBottom: 3 }}>All deposits received</div>
-              <div style={{ color: T.muted, fontSize: 13, marginBottom: 10 }}>Ready to pay {$(circle.pot)} to {recipient?.name}.</div>
+              <div style={{ color: T.muted, fontSize: 13, marginBottom: 10 }}>Ready to pay {$(circle.pot, '')} {circle.tokenSymbol || 'USDC'} to {recipient?.name}.</div>
               <GoldButton onClick={doTrigger} disabled={triggering} style={{ padding: '9px 16px', fontSize: 13 }}>
                 {triggering && <Spinner size={13} color="#fff" />}
                 {triggering ? 'Sending...' : 'Trigger Payout'}
@@ -425,9 +425,9 @@ export default function CircleDetailPage({ circle, isMember, connected, onBack, 
         {tab === 'history' && (
           <div>
             {(circle.payoutHistory || []).length === 0 ? (
-              <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: '36px 16px', textAlign: 'center', color: T.muted, fontSize: 14 }}>
-                No payouts yet.
-              </div>
+              <div style={{ background:T.pinkDim, border:`1px solid ${T.pinkD}40`, borderRadius:8, padding:'10px 12px', fontSize:12, color:T.pink, lineHeight:1.6 }}>
+              This circle uses <strong>{circle.tokenSymbol || 'USDC'}</strong> on {import.meta.env.VITE_NETWORK_NAME || 'Polkadot Hub'}.
+            </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {circle.payoutHistory.map((h, i) => (
@@ -439,7 +439,7 @@ export default function CircleDetailPage({ circle, isMember, connected, onBack, 
                       <div style={{ color: T.text, fontSize: 13, fontWeight: 500 }}>Round {h.round} → {h.recipientName}</div>
                       <div style={{ color: T.muted, fontSize: 11, marginTop: 2 }}>{h.date} · {sh(h.txHash)}</div>
                     </div>
-                    <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 16, fontWeight: 700, color: T.ok, flexShrink: 0 }}>{$(h.amount)}</div>
+                    <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 16, fontWeight: 700, color: T.ok, flexShrink: 0 }}>{$(h.amount, '')} {circle.tokenSymbol || 'USDC'}</div>
                   </div>
                 ))}
               </div>

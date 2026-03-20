@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { T, sans } from '../theme.js';
 import { Ring, Tag, GoldButton, Empty } from '../components/ui.jsx';
 
-const $ = n => '$' + Number(n||0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
+const $ = (n, sym = '$') => sym + Number(n||0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
 
 // Card view for mobile / compact display
 function CircleCard({ circle }) {
@@ -26,7 +26,7 @@ function CircleCard({ circle }) {
             <div style={{ fontFamily:"'Sora',sans-serif", fontSize:14, fontWeight:600, color:T.text, marginBottom:4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{circle.name}</div>
             <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' }}>
               {circle.isAdmin && <Tag color={T.pink}>Admin</Tag>}
-              <span style={{ color:T.muted, fontSize:12 }}>{circle.cycleLabel}</span>
+              <span style={{ color:T.muted, fontSize:12 }}>{circle.cycleLabel} · {$(circle.depositAmount, '')} {circle.tokenSymbol || 'USDC'}</span>
             </div>
           </div>
           <div style={{ flexShrink:0 }}>
@@ -35,8 +35,8 @@ function CircleCard({ circle }) {
         </div>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
-            <div style={{ color:T.muted, fontSize:11, marginBottom:3 }}>Pot</div>
-            <div style={{ fontFamily:"'Sora',sans-serif", fontSize:18, fontWeight:700, color:T.pink }}>{$(circle.pot)}</div>
+            <div style={{ color:T.muted, fontSize:11, marginBottom:3 }}>Pot ({circle.tokenSymbol || 'USDC'})</div>
+            <div style={{ fontFamily:"'Sora',sans-serif", fontSize:18, fontWeight:700, color:T.pink }}>{$(circle.pot, '')}</div>
           </div>
           <div style={{ textAlign:'center' }}>
             <div style={{ color:T.muted, fontSize:11, marginBottom:3 }}>Deposits</div>

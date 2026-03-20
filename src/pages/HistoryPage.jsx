@@ -3,21 +3,24 @@ import { Link } from 'react-router-dom';
 import { T, sans } from '../theme.js';
 import { Tag } from '../components/ui.jsx';
 
-const $ = n => '$' + Number(n||0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
+const $ = (n, sym = '$') => sym + Number(n||0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
 const sh = a => a ? a.slice(0,8)+'...'+a.slice(-4) : '';
 
 export default function HistoryPage({ circles }) {
   const allHistory  = circles.flatMap(c => 
     (c.payoutHistory||[])
       .filter(h => h.recipientName === 'You')
-      .map(h => ({ ...h, type:'payout',  circleName:c.name, circleId:c.id }))
+      .map(h => ({ ...h, type:'payout',  circleName:c.name, circleId:c.id, symbol:c.tokenSymbol || 'USDC' }))
   ).sort((a,b) => new Date(b.date)-new Date(a.date));
 
-  const allDeposits = circles.filter(c=>c.hasPaid).map(c => ({ type:'deposit', circleName:c.name, circleId:c.id, amount:c.depositAmount, round:c.currentRound, date:'This cycle', txHash:null, recipientName:null }));
+  const allDeposits = circles.filter(c=>c.hasPaid).map(c => ({ type:'deposit', circleName:c.name, circleId:c.id, amount:c.depositAmount, round:c.currentRound, date:'This cycle', txHash:null, recipientName:null, symbol:c.tokenSymbol || 'USDC' }));
   const rows = [...allHistory, ...allDeposits];
 
   const totalReceived  = allHistory.reduce((s,h)=>s+h.amount,0);
   const totalDeposited = circles.reduce((s,c)=>s+(c.hasPaid?c.depositAmount:0),0);
+  
+  // For the summary, we'll use USDC as the default symbol if most are USDC, or just showing 'Value'
+  const mainSym = circles[0]?.tokenSymbol || '$';
 
   return (
     <div style={{ padding:'20px 16px', animation:'fadeUp .3s ease both' }}>
@@ -29,13 +32,13 @@ export default function HistoryPage({ circles }) {
       {/* Summary */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:24 }}>
         {[
-          { label:'Received',   value:$(totalReceived),  color:T.ok },
-          { label:'Deposited',  value:$(totalDeposited), color:T.pink },
-          { label:'Payouts',    value:allHistory.length, color:T.text },
+          { label:'Received',   value:$(totalReceived, ''),  color:T.ok,  sym: mainSym },
+          { label:'Deposited',  value:$(totalDeposited, ''), color:T.pink, sym: mainSym },
+          { label:'Payouts',    value:allHistory.length, color:T.text, sym: '' },
         ].map((s,i) => (
           <div key={i} style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:10, padding:'14px 12px' }}>
             <div style={{ color:T.muted, fontSize:11, fontWeight:500, marginBottom:6, textTransform:'uppercase', letterSpacing:'.05em' }}>{s.label}</div>
-            <div style={{ fontFamily:"'Sora',sans-serif", fontSize:20, fontWeight:700, color:s.color }}>{s.value}</div>
+            <div style={{ fontFamily:"'Sora',sans-serif", fontSize:20, fontWeight:700, color:s.color }}>{s.value} <span style={{fontSize:12}}>{s.sym}</span></div>
           </div>
         ))}
       </div>
@@ -73,7 +76,7 @@ export default function HistoryPage({ circles }) {
             </div>
 
             <div style={{ fontFamily:"'Sora',sans-serif", fontSize:15, fontWeight:700, color:row.type==='payout'?T.ok:T.text, flexShrink:0 }}>
-              {row.type==='payout' ? '+' : '-'}{$(row.amount)}
+              {row.type==='payout' ? '+' : '-'}{$(row.amount, '')} <span style={{fontSize:11, fontWeight:400}}>{row.symbol || 'USDC'}</span>
             </div>
           </div>
         ))}

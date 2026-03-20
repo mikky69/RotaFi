@@ -10,11 +10,11 @@ const toCycleLabel = s => {
 };
 
 /** Build a normalised circle object from on-chain data */
-function buildCircle(circleAddress, info, members = [], memberStatuses = [], userAddress, historyRecords = [], isPaused = false, currentRoundInfo = null) {
+function buildCircle(circleAddress, info, members = [], memberStatuses = [], userAddress, historyRecords = [], isPaused = false, currentRoundInfo = null, tokenSymbol = 'USDC', tokenDecimals = 6) {
   if (!info) return null;
   const cap = Number(info.memberCap);
   const mc = Number(info.memberCount ?? members.length);
-  const dep = Number(info.depositAmount) / 1_000_000;
+  const dep = Number(info.depositAmount) / (10 ** tokenDecimals);
   const currentRound = Number(info.currentRound);
 
   // memberStatuses is flat: [hasPaid_0, position_0, isPenalized_0, hasPaid_1, position_1, isPenalized_1, ...]
@@ -39,7 +39,7 @@ function buildCircle(circleAddress, info, members = [], memberStatuses = [], use
   const payoutHistory = (historyRecords || []).map(h => ({
     round: Number(h.round),
     recipientName: roster.find(r => r.memberAddress?.toLowerCase() === h.recipient?.toLowerCase())?.name || (h.recipient ? h.recipient.slice(0, 6) + '...' : 'Unknown'),
-    amount: Number(h.amount) / 1_000_000,
+    amount: Number(h.amount) / (10 ** tokenDecimals),
     date: new Date(Number(h.timestamp) * 1000).toLocaleDateString(),
     txHash: null, // The contract doesn't store the transaction hash, so we omit it
   })).reverse(); // Show newest first
@@ -62,6 +62,9 @@ function buildCircle(circleAddress, info, members = [], memberStatuses = [], use
     isActive: info.isActive,
     isPaused,
     deadline: currentRoundInfo ? Number(currentRoundInfo.deadline) : 0,
+    tokenSymbol,
+    tokenDecimals,
+    tokenAddress: info.tokenAddress,
     roster,
     payoutHistory,
   };
@@ -72,7 +75,7 @@ export function useCirclesData() {
   const { address } = useAccount();
 
   // 1. Member circles from factory registry
-  const { data: memberCircleAddresses = [], refetch: refetchMemberCircles } = useReadContract({
+  const { data: memberCircleAddresses = [], refetch: refetchMemberCircles, error: memberCirclesError } = useReadContract({
     address: ADDRESSES.RotaFiFactory,
     abi: RotaFiFactoryABI,
     functionName: 'getCirclesByMember',
@@ -80,13 +83,20 @@ export function useCirclesData() {
     query: { enabled: !!address && !!ADDRESSES.RotaFiFactory },
   });
 
+  if (memberCirclesError) console.error("❌ [useCircle] Error fetching member circles:", memberCirclesError);
+  if (memberCircleAddresses?.length > 0) console.log(`🔍 [useCircle] Fetched ${memberCircleAddresses.length} member circles`);
+
+
   // 2. Open circles — factory returns full CircleEntry structs, no second read needed
-  const { data: openEntries = [], refetch: refetchOpenCircles } = useReadContract({
+  const { data: openEntries = [], refetch: refetchOpenCircles, error: openError } = useReadContract({
     address: ADDRESSES.RotaFiFactory,
     abi: RotaFiFactoryABI,
     functionName: 'getOpenCircles',
     query: { enabled: !!ADDRESSES.RotaFiFactory },
   });
+
+  if (openError) console.error("❌ [useCircle] Error fetching open circles:", openError);
+  if (openEntries?.length > 0) console.log(`🔍 [useCircle] Fetched ${openEntries.length} open circles`);
 
   // 3. For member circles: batch-read params
   const infoAndMembersCalls = useMemo(() =>
@@ -145,7 +155,8 @@ export function useCirclesData() {
         : [];
       memberStatusOffset += memberCount * 3;
 
-      const circle = buildCircle(memberCircleAddresses[i], info, members, statuses, address, history, isPaused, currentRoundInfo);
+      if (!info) continue;
+      const circle = buildCircle(memberCircleAddresses[i], info, members, statuses, address, history, isPaused, currentRoundInfo, info.tokenSymbol || 'USDC', Number(info.tokenDecimals ?? 6));
       if (circle) out.push(circle);
     }
     return out;
@@ -171,8 +182,8 @@ export function useCirclesData() {
         currentRound: entry.currentRound,
         totalRounds: entry.totalRounds,
         isActive: entry.isActive,
-        usdcAddress: entry.usdcAddress,
-      }, [], [], address, [], false, null))
+        tokenAddress: entry.tokenAddress,
+      }, [], [], address, [], false, null, entry.tokenSymbol || 'USDC', Number(entry.tokenDecimals ?? 6)))
       .filter(Boolean);
   }, [openEntries, address, memberAddrSet]);
 

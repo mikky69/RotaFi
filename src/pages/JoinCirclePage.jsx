@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useWriteContract, useReadContract, useAccount } from 'wagmi';
+import { useWriteContract, useReadContract, useAccount, usePublicClient } from 'wagmi';
 import { parseUnits } from 'viem';
 import { T, sans, inputStyle } from '../theme.js';
 import { Tag, GoldButton, Spinner } from '../components/ui.jsx';
 import { PolUSDCABI, RotaFiCircleABI, RotaFiFactoryABI, ADDRESSES } from '../contracts/index.js';
 
-const $ = n => '$' + Number(n || 0).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const $ = (n, symbol = '$') => symbol + Number(n || 0).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const sh = a => a ? a.slice(0, 8) + '...' + a.slice(-4) : '';
 
 function CircleCard({ circle, onJoin, alreadyIn }) {
+  console.log("circle", circle)
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [step, setStep] = useState(''); // 'approving', 'joining'
   const { address } = useAccount();
+  const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
 
   const spots = circle.memberCap - circle.memberCount;
@@ -21,51 +23,64 @@ function CircleCard({ circle, onJoin, alreadyIn }) {
 
   // Check current allowance broadly
   const { data: allowance } = useReadContract({
-    address: ADDRESSES.PolUSDC,
+    address: circle.tokenAddress,
     abi: PolUSDCABI,
     functionName: 'allowance',
     args: [address, circle.contractAddress],
-    query: { enabled: !!address && !!circle.contractAddress }
+    query: { enabled: !!address && !!circle.contractAddress && !!circle.tokenAddress }
   });
 
   const handleJoin = async (e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Keep this to prevent card expansion
+    console.log(`🚀 [JoinCirclePage] Attempting to join circle: "${circle.name}" at ${circle.contractAddress}`);
+    console.log(`📊 Token: ${circle.tokenSymbol || 'USDC'} (${circle.tokenAddress})`);
+    
     setLoading(true);
     try {
-      // Scale expected deposit
-      const amountToApprove = parseUnits(circle.depositAmount.toString(), 6);
+      const amountToApprove = parseUnits(circle.depositAmount.toString(), circle.tokenDecimals || 6);
+      console.log(`💳 Allowance required: ${amountToApprove.toString()}`);
 
       // Need approval?
       if (!allowance || allowance < amountToApprove) {
         setStep('approving');
-        await writeContractAsync({
-          address: ADDRESSES.PolUSDC,
+        console.log(`⏳ [JoinCirclePage] Approving ${circle.tokenSymbol || 'USDC'} for ${circle.contractAddress}...`);
+        const approveHash = await writeContractAsync({
+          address: circle.tokenAddress,
           abi: PolUSDCABI,
           functionName: 'approve',
           args: [circle.contractAddress, amountToApprove],
         });
+        console.log(`✅ [JoinCirclePage] Approval tx submitted: ${approveHash}`);
+        await publicClient.waitForTransactionReceipt({ hash: approveHash });
       }
 
       setStep('joining');
-      const txHash = await writeContractAsync({
+      console.log(`⏳ [JoinCirclePage] Joining circle contract...`);
+      const joinHash = await writeContractAsync({
         address: circle.contractAddress,
         abi: RotaFiCircleABI,
         functionName: 'joinCircle',
       });
+      console.log(`✅ [JoinCirclePage] Join tx submitted: ${joinHash}`);
+      await publicClient.waitForTransactionReceipt({ hash: joinHash });
 
       // Register membership in the factory registry so getCirclesByMember picks it up
-      await writeContractAsync({
+      console.log(`⏳ [JoinCirclePage] Recording join in Factory: ${ADDRESSES.RotaFiFactory}`);
+      const recordHash = await writeContractAsync({
         address: ADDRESSES.RotaFiFactory,
         abi: RotaFiFactoryABI,
         functionName: 'recordJoin',
         args: [circle.contractAddress],
       });
+      console.log(`✅ [JoinCirclePage] Factory record tx submitted: ${recordHash}`);
+      await publicClient.waitForTransactionReceipt({ hash: recordHash });
 
+      console.log(`🎉 [JoinCirclePage] Successfully joined circle: ${circle.name}!`);
       // Notify AppState to refetch and show success toast
-      await onJoin(circle.id, txHash);
+      await onJoin(circle.id, joinHash); // Changed txHash to joinHash
 
     } catch (err) {
-      console.error(err);
+      console.error("❌ [JoinCirclePage] Error joining circle:", err);
       alert(err.shortMessage || 'Failed to join group.');
     } finally {
       setLoading(false);
@@ -80,7 +95,7 @@ function CircleCard({ circle, onJoin, alreadyIn }) {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 15, fontWeight: 600, color: T.text, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{circle.name}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ color: T.muted, fontSize: 12 }}>{$(circle.depositAmount)}/{circle.cycleLabel.toLowerCase()}</span>
+              <span style={{ color: T.muted, fontSize: 12 }}>{$(circle.depositAmount, '')} {circle.tokenSymbol || 'USDC'}/{circle.cycleLabel.toLowerCase()}</span>
               <span style={{ color: T.dim }}>·</span>
               <span style={{ color: spots <= 2 ? T.warn : T.muted, fontSize: 12, fontWeight: spots <= 2 ? 500 : 400 }}>
                 {spots} spot{spots !== 1 ? 's' : ''} left
@@ -88,8 +103,8 @@ function CircleCard({ circle, onJoin, alreadyIn }) {
             </div>
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 20, fontWeight: 700, color: T.pink }}>{$(circle.pot)}</div>
-            <div style={{ color: T.muted, fontSize: 11 }}>pot</div>
+            <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 20, fontWeight: 700, color: T.pink }}>{$(circle.pot, '')}</div>
+            <div style={{ color: T.muted, fontSize: 11 }}>{circle.tokenSymbol || 'USDC'} pot</div>
           </div>
         </div>
 
@@ -108,7 +123,7 @@ function CircleCard({ circle, onJoin, alreadyIn }) {
           {!alreadyIn ? (
             <GoldButton onClick={handleJoin} disabled={loading} style={{ flex: 1, padding: '9px 0', fontSize: 14, borderRadius: 8 }}>
               {loading && <Spinner size={14} color="#fff" />}
-              {loading ? (step === 'approving' ? 'Approving USDC...' : 'Joining...') : 'Join Circle'}
+              {loading ? (step === 'approving' ? `Approving ${circle.tokenSymbol || 'USDC'}...` : 'Joining...') : 'Join Circle'}
             </GoldButton>
           ) : (
             <div style={{ flex: 1, padding: '9px 0', fontSize: 14, color: T.ok, border: `1px solid ${T.okBdr}`, borderRadius: 8, background: T.okBg, textAlign: 'center', fontFamily: sans }}>Joined</div>
@@ -134,7 +149,7 @@ function CircleCard({ circle, onJoin, alreadyIn }) {
             </div>
           </div>
           <div style={{ background: T.warnBg, border: `1px solid ${T.warnBdr}`, borderRadius: 8, padding: '10px 12px', fontSize: 12, color: T.warn, lineHeight: 1.6 }}>
-            Joining requires two transactions: 1. Approve USDC, 2. Join Circle. Make sure you have PolUSDC.
+            Joining requires two transactions: 1. Approve {circle.tokenSymbol || 'USDC'}, 2. Join Circle. Make sure you have enough {circle.tokenSymbol || 'USDC'}.
           </div>
           <Link to={`/app/circle/${circle.id}`} style={{ color: T.pink, fontSize: 13, fontFamily: sans, display: 'flex', alignItems: 'center', gap: 5, textDecoration: 'none' }}>
             View full details
@@ -180,7 +195,7 @@ export default function JoinCirclePage({ availableCircles, myCircleIds, onJoin, 
       </div>
 
       <div style={{ background: T.pinkDim, border: `1px solid ${T.pinkD}50`, borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: T.muted }}>
-        Approve ERC20 USDC spend on the token contract before your first deposit.
+        Approve ERC20 token spend on the contract before your first deposit.
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

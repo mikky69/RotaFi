@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
@@ -50,6 +50,7 @@ contract RotaFiCircle is AccessControl, ReentrancyGuard, Pausable {
     /// @dev Returned by getInfo() — full snapshot of the circle state
     struct CircleInfo {
         string  name;
+        string  tokenSymbol;
         address admin;
         uint32  memberCap;
         uint32  memberCount;
@@ -58,7 +59,8 @@ contract RotaFiCircle is AccessControl, ReentrancyGuard, Pausable {
         uint32  currentRound;
         uint32  totalRounds;
         bool    isActive;
-        address usdcAddress;
+        address tokenAddress;
+        uint8   tokenDecimals;
         uint64  roundStartedAt;
     }
 
@@ -89,7 +91,9 @@ contract RotaFiCircle is AccessControl, ReentrancyGuard, Pausable {
     uint32  public currentRound;    // 0 = filling phase; 1-based when active
     uint32  public totalRounds;     // == memberCap
     bool    public isActive;
-    address public usdcAddress;
+    address public tokenAddress;
+    string  public tokenSymbol;
+    uint8   public tokenDecimals;
     uint64  public roundStartedAt;  // unix seconds
 
     // ── Private state ──────────────────────────────────────────────────────
@@ -144,7 +148,9 @@ contract RotaFiCircle is AccessControl, ReentrancyGuard, Pausable {
         currentRound  = 0;
         totalRounds   = _memberCap;
         isActive      = true;
-        usdcAddress   = _usdcAddress;
+        tokenAddress  = _usdcAddress;
+        tokenSymbol   = IERC20Metadata(_usdcAddress).symbol();
+        tokenDecimals = IERC20Metadata(_usdcAddress).decimals();
         roundStartedAt = 0;
 
         _members.push(_admin);
@@ -198,9 +204,14 @@ contract RotaFiCircle is AccessControl, ReentrancyGuard, Pausable {
         _penalized[msg.sender] = false; // clear late flag on deposit
 
         // Pull tokens from caller
-        IERC20(usdcAddress).safeTransferFrom(msg.sender, address(this), depositAmount);
+        IERC20(tokenAddress).safeTransferFrom(msg.sender, address(this), depositAmount);
 
         emit DepositMade(msg.sender, currentRound);
+
+        // Automatic Payout: Trigger if this was the last deposit needed
+        if (_countDeposits() == memberCount) {
+            _executePayout();
+        }
     }
 
     // ── Write: flagLateMembers ─────────────────────────────────────────────
@@ -237,10 +248,21 @@ contract RotaFiCircle is AccessControl, ReentrancyGuard, Pausable {
 
         if (!allIn && block.timestamp < deadline) revert RoundNotComplete();
 
+        _executePayout();
+    }
+
+    /**
+     * @dev Internal payout logic shared by triggerPayout() and automatic deposit trigger.
+     */
+    function _executePayout() internal {
+        // Must check isActive/currentRound again because it's called internally
+        if (!isActive || currentRound == 0) return;
+
         address recipient = _members[currentRound - 1];
+        uint32 depositsIn = _countDeposits();
+        uint32 closingRound = currentRound;
 
         // CEI: update all state before external token transfer
-        uint32 closingRound = currentRound;
         _flagLate();
 
         if (currentRound >= totalRounds) {
@@ -254,7 +276,7 @@ contract RotaFiCircle is AccessControl, ReentrancyGuard, Pausable {
 
         uint256 pot = depositAmount * depositsIn;
 
-        // Store on-chain record (before external call is fine — state already updated)
+        // Store on-chain record
         _payoutHistory.push(PayoutRecord({
             round:     closingRound,
             recipient: recipient,
@@ -264,9 +286,9 @@ contract RotaFiCircle is AccessControl, ReentrancyGuard, Pausable {
 
         emit PotPaidOut(recipient, pot, closingRound);
 
-        // External call last (reentrancy guard active)
+        // External call last
         if (pot > 0) {
-            IERC20(usdcAddress).safeTransfer(recipient, pot);
+            IERC20(tokenAddress).safeTransfer(recipient, pot);
         }
     }
 
@@ -284,6 +306,7 @@ contract RotaFiCircle is AccessControl, ReentrancyGuard, Pausable {
     function getInfo() external view returns (CircleInfo memory) {
         return CircleInfo({
             name:          name,
+            tokenSymbol:   tokenSymbol,
             admin:         admin,
             memberCap:     memberCap,
             memberCount:   memberCount,
@@ -292,7 +315,8 @@ contract RotaFiCircle is AccessControl, ReentrancyGuard, Pausable {
             currentRound:  currentRound,
             totalRounds:   totalRounds,
             isActive:      isActive,
-            usdcAddress:   usdcAddress,
+            tokenAddress:  tokenAddress,
+            tokenDecimals: tokenDecimals,
             roundStartedAt: roundStartedAt
         });
     }

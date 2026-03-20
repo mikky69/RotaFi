@@ -19,6 +19,7 @@ contract RotaFiFactory is Ownable {
     struct CircleEntry {
         address circleAddress;
         string name;
+        string tokenSymbol;
         address admin;
         uint32 memberCap;
         uint32 memberCount;
@@ -27,7 +28,8 @@ contract RotaFiFactory is Ownable {
         uint32 currentRound;
         uint32 totalRounds;
         bool isActive;
-        address usdcAddress;
+        address tokenAddress;
+        uint8 tokenDecimals;
     }
 
     // ── State ──────────────────────────────────────────────────────────────
@@ -68,7 +70,7 @@ contract RotaFiFactory is Ownable {
      * @param memberCap      Total seats (3–20). Equals totalRounds.
      * @param depositAmount  USDC base units per cycle (1 USDC = 1_000_000)
      * @param cycleSeconds   Seconds per round (e.g. 604800 = 1 week, 2592000 = 30 days)
-     * @param usdcAddress    ERC20 USDC token address on this network
+     * @param tokenAddress   ERC20 token address on this network (e.g. USDC or DOT)
      * @return circle        Address of the newly deployed RotaFiCircle
      */
     function createCircle(
@@ -76,7 +78,7 @@ contract RotaFiFactory is Ownable {
         uint32 memberCap,
         uint256 depositAmount,
         uint64 cycleSeconds,
-        address usdcAddress
+        address tokenAddress
     ) external returns (address circle) {
         // Deploy — constructor validates all params and reverts with descriptive errors
         RotaFiCircle sc = new RotaFiCircle(
@@ -84,7 +86,7 @@ contract RotaFiFactory is Ownable {
             memberCap,
             depositAmount,
             cycleSeconds,
-            usdcAddress,
+            tokenAddress,
             msg.sender // admin + member #1
         );
 
@@ -184,16 +186,18 @@ contract RotaFiFactory is Ownable {
         RotaFiCircle.CircleInfo memory info = sc.getInfo();
         entry = CircleEntry({
             circleAddress: circleAddress,
-            name: info.name,
-            admin: info.admin,
-            memberCap: info.memberCap,
-            memberCount: info.memberCount,
+            name:          info.name,
+            tokenSymbol:   info.tokenSymbol,
+            admin:         info.admin,
+            memberCap:     info.memberCap,
+            memberCount:   info.memberCount,
             depositAmount: info.depositAmount,
-            cycleSeconds: info.cycleSeconds,
-            currentRound: info.currentRound,
-            totalRounds: info.totalRounds,
-            isActive: info.isActive,
-            usdcAddress: info.usdcAddress
+            cycleSeconds:  info.cycleSeconds,
+            currentRound:  info.currentRound,
+            totalRounds:   info.totalRounds,
+            isActive:      info.isActive,
+            tokenAddress:  info.tokenAddress,
+            tokenDecimals: info.tokenDecimals
         });
     }
 }

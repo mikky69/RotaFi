@@ -44,7 +44,8 @@ export default function ProfilePage() {
 
   const totalSaved = circles.reduce((s, c) => s + (c.hasPaid ? c.depositAmount : 0), 0);
   const totalEarned = circles.flatMap(c => c.payoutHistory || []).reduce((s, h) => s + h.amount, 0);
-  const $ = n => '$' + Number(n || 0).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const $ = (n, sym = '$') => sym + Number(n || 0).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const mainSym = circles[0]?.tokenSymbol || 'USDC';
 
   return (
     <div style={{ padding: '24px 16px', maxWidth: 680, margin: '0 auto', animation: 'fadeUp .3s ease both' }}>
@@ -78,8 +79,8 @@ export default function ProfilePage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, minWidth: 200 }}>
           {[
             { label: 'Circles', val: circles.length },
-            { label: 'Saved', val: $(totalSaved).replace('$', '$') },
-            { label: 'Earned', val: $(totalEarned) },
+            { label: 'Saved', val: $(totalSaved, '') + ' ' + mainSym },
+            { label: 'Earned', val: $(totalEarned, '') + ' ' + mainSym },
           ].map((s, i) => (
             <div key={i} style={{ background: T.surface, borderRadius: 8, padding: '10px 12px', textAlign: 'center', border: `1px solid ${T.border}` }}>
               <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 16, fontWeight: 700, color: T.pink }}>{s.val}</div>
@@ -217,7 +218,7 @@ export default function ProfilePage() {
           {[
             { label: 'Address', val: account?.address, mono: true },
             { label: 'Network', val: 'Polkadot Testnet (Hub EVM)', mono: false },
-            { label: 'Contract', val: 'Solidity EVM · ERC20 PolUSDC', mono: false },
+            { label: 'Contract', val: 'Solidity EVM · Multi-token savings', mono: false },
           ].map(({ label, val, mono }) => (
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: `1px solid ${T.border}` }}>
               <span style={{ color: T.muted, fontSize: 13, flexShrink: 0 }}>{label}</span>

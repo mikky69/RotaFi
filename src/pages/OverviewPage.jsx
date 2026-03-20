@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { T, sans } from '../theme.js';
 import { Metric, Ring, GoldButton, Tag } from '../components/ui.jsx';
 
-const $ = n => '$' + Number(n||0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
+const $ = (n, symbol = '$') => symbol + Number(n||0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
 const sh = a => a ? a.slice(0,8)+'...'+a.slice(-4) : '';
 
 function ActivityRow({ item }) {
@@ -21,7 +21,7 @@ function ActivityRow({ item }) {
         <div style={{ color:T.muted, fontSize:12 }}>{item.date}</div>
       </div>
       <div style={{ textAlign:'right', flexShrink:0 }}>
-        <div style={{ fontSize:14, fontWeight:600, color:item.type==='payout'?T.ok:T.text, fontFamily:"'Sora',sans-serif" }}>{item.amount}</div>
+        <div style={{ fontSize:14, fontWeight:600, color:item.type==='payout'?T.ok:T.text, fontFamily:"'Sora',sans-serif" }}>{item.amount} <span style={{fontSize:10, fontWeight:400}}>{item.symbol}</span></div>
       </div>
     </div>
   );
@@ -48,7 +48,7 @@ function MiniCircleCard({ circle }) {
           {!circle.hasPaid && <Tag color={T.err}>Due</Tag>}
         </div>
         <div style={{ fontFamily:"'Sora',sans-serif", fontSize:20, fontWeight:700, color:T.pink }}>
-          {$(circle.pot)} <span style={{ fontSize:12, fontWeight:400, color:T.muted }}>pot</span>
+          {$(circle.pot, '')} <span style={{ fontSize:12, fontWeight:400, color:T.muted }}>{circle.tokenSymbol || 'USDC'} pot</span>
         </div>
       </div>
     </Link>
@@ -61,8 +61,8 @@ export default function OverviewPage({ account, circles }) {
   const pending     = circles.filter(c => !c.hasPaid).length;
   const totalEarned = circles.flatMap(c=>c.payoutHistory||[]).reduce((s,h)=>s+h.amount, 0);
   const recentAct   = [
-    ...circles.flatMap(c=>(c.payoutHistory||[]).map(h=>({ type:'payout', label:`Received from ${c.name}`, amount:$(h.amount), date:h.date }))),
-    ...circles.filter(c=>c.hasPaid).map(c=>({ type:'deposit', label:`Deposited to ${c.name}`, amount:`-${$(c.depositAmount)}`, date:'This cycle' })),
+    ...circles.flatMap(c=>(c.payoutHistory||[]).map(h=>({ type:'payout', label:`Received from ${c.name}`, amount:$(h.amount, ''), symbol:c.tokenSymbol||'USDC', date:h.date }))),
+    ...circles.filter(c=>c.hasPaid).map(c=>({ type:'deposit', label:`Deposited to ${c.name}`, amount:`-${$(c.depositAmount, '')}`, symbol:c.tokenSymbol||'USDC', date:'This cycle' })),
   ].slice(0, 6);
 
   return (

@@ -25,6 +25,14 @@ async function main() {
   const usdcAddress = await polUsdc.getAddress();
   console.log(`   PolUSDC deployed → ${usdcAddress}`);
 
+  // ── 1.5 Deploy PolDOT ────────────────────────────────────────────────────
+  console.log("📦 Deploying PolDOT...");
+  const PolDOT = await ethers.getContractFactory("PolDOT");
+  const polDot = await PolDOT.deploy(deployer.address);
+  await polDot.waitForDeployment();
+  const dotAddress = await polDot.getAddress();
+  console.log(`   PolDOT deployed → ${dotAddress}`);
+
   // ── 2. Deploy RotaFiFactory ──────────────────────────────────────────────
   console.log("📦 Deploying RotaFiFactory...");
   const RotaFiFactory = await ethers.getContractFactory("RotaFiFactory");
@@ -40,14 +48,21 @@ async function main() {
     deployedAt: new Date().toISOString(),
     deployer: deployer.address,
     PolUSDC: usdcAddress,
+    PolDOT: dotAddress,
     RotaFiFactory: factoryAddress,
   };
 
-  const outPath = resolve(__dirname, "../deployments.json");
-  writeFileSync(outPath, JSON.stringify(deployments, null, 2));
-  console.log(`\n✅ Deployment complete. Addresses saved to deployments.json`);
+  const outPath1 = resolve(__dirname, "../deployments.json");
+  const outPath2 = resolve(__dirname, "../src/contracts/deployments.json");
+  
+  const content = JSON.stringify(deployments, null, 2);
+  writeFileSync(outPath1, content);
+  writeFileSync(outPath2, content);
+  
+  console.log(`\n✅ Deployment complete. Addresses saved to deployments.json and src/contracts/deployments.json`);
   console.log(`\n📋 Add these to your .env file:`);
   console.log(`   VITE_USDC_ADDRESS=${usdcAddress}`);
+  console.log(`   VITE_DOT_ADDRESS=${dotAddress}`);
   console.log(`   VITE_CIRCLE_FACTORY_ADDRESS=${factoryAddress}\n`);
 }
 
