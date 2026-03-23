@@ -282,14 +282,16 @@ export default function JoinCirclePage({ availableCircles, myCircleIds, onJoin, 
 						className={cn(cls.input, 'pl-9')}
 					/>
 				</div>
-				<select
-					value={sortBy}
-					onChange={(e) => setSortBy(e.target.value)}
-					className={cn(cls.input, 'w-auto shrink-0')}
-				>
-					<option value="pot">Pot</option>
-					<option value="members">Members</option>
-				</select>
+				<div>	
+					<select
+						value={sortBy}
+						onChange={(e) => setSortBy(e.target.value)}
+						className={cn(cls.input, 'shrink-1')}
+					>
+						<option value="pot">Pot</option>
+						<option value="members">Members</option>
+					</select>
+				</div>
 			</div>
 
 			<div
