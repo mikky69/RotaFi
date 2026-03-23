@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
-import { T, sans, inputStyle, labelStyle } from '../theme.js';
+import { COLORS, cls, cn } from '../theme.js';
 import { Spinner, GoldButton } from './ui.jsx';
 import { RotaFiFactoryABI, ADDRESSES, PolUSDCABI } from '../contracts/index.js';
 
@@ -90,50 +90,66 @@ export default function CreateModal({ onClose, onCreate }) {
   const isBusy = isWriting || isConfirming;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9000, padding: 24 }}
-      onClick={e => e.target === e.currentTarget && !isBusy && onClose()}>
-      <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 14, width: '100%', maxWidth: 460, animation: 'fadeUp .2s ease', maxHeight: '90vh', overflowY: 'auto' }}>
-
+    <div
+      className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9000] p-6"
+      onClick={e => e.target === e.currentTarget && !isBusy && onClose()}
+      style={{ animation: 'fadeIn .2s ease' }}
+    >
+      <div
+        className={cn(cls.card, 'w-full max-w-[460px] max-h-[90vh] overflow-y-auto')}
+        style={{ animation: 'fadeUp .2s ease' }}
+      >
         {/* Header */}
-        <div style={{ padding: '20px 26px', borderBottom: `1px solid ${T.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border">
           <div>
-            <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 18, fontWeight: 700, color: T.text }}>Create New Circle</div>
-            <div style={{ color: T.muted, fontSize: 13, marginTop: 2 }}>Deploy a Solidity EVM contract</div>
+            <div className="font-sora text-lg font-bold text-ink">Create New Circle</div>
+            <div className="text-muted text-[13px] mt-0.5">Deploy a Solidity EVM contract</div>
           </div>
-          <button onClick={onClose} disabled={isBusy} style={{ width: 30, height: 30, borderRadius: 7, border: `1px solid ${T.border}`, background: T.card, color: T.muted, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isBusy ? 'not-allowed' : 'pointer' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          <button
+            onClick={onClose} disabled={isBusy}
+            className={cn(cls.card, 'w-[30px] h-[30px] rounded-lg text-muted flex items-center justify-center cursor-pointer hover:text-ink transition-colors disabled:cursor-not-allowed')}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
         </div>
 
-        <div style={{ padding: '24px 26px' }}>
-          <label style={labelStyle}>Circle name</label>
-          <input disabled={isBusy} style={{ ...inputStyle, marginBottom: 18 }} placeholder="e.g. Lagos Tech Circle" value={form.name} onChange={set('name')} maxLength={60} />
+        <div className="px-6 py-6">
+          {/* Name */}
+          <label className={cls.label}>Circle name</label>
+          <input
+            disabled={isBusy}
+            className={cn(cls.input, 'mb-4')}
+            placeholder="e.g. Lagos Tech Circle"
+            value={form.name} onChange={set('name')} maxLength={60}
+          />
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 18 }}>
+          {/* Members + Frequency */}
+          <div className="grid grid-cols-2 gap-3.5 mb-4">
             <div>
-              <label style={labelStyle}>Members</label>
-              <select disabled={isBusy} style={inputStyle} value={form.memberCap} onChange={set('memberCap')}>
-                {[3, 4, 5, 6, 8, 10, 12].map(n => <option key={n} value={n}>{n} members</option>)}
+              <label className={cls.label}>Members</label>
+              <select disabled={isBusy} className={cls.input} value={form.memberCap} onChange={set('memberCap')}>
+                {[3,4,5,6,8,10,12].map(n => <option key={n} value={n}>{n} members</option>)}
               </select>
             </div>
             <div>
-              <label style={labelStyle}>Frequency</label>
-              <select disabled={isBusy} style={inputStyle} value={form.frequency} onChange={set('frequency')}>
+              <label className={cls.label}>Frequency</label>
+              <select disabled={isBusy} className={cls.input} value={form.frequency} onChange={set('frequency')}>
                 <option value="Weekly">Weekly</option>
                 <option value="Monthly">Monthly</option>
               </select>
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 18 }}>
+          {/* Token Type + Amount */}
+          <div className="grid grid-cols-2 gap-3.5 mb-4">
             <div>
-              <label style={labelStyle}>Token Type</label>
-              <select disabled={isBusy} style={inputStyle} value={tokenType} onChange={e => {
+              <label className={cls.label}>Token Type</label>
+              <select disabled={isBusy} className={cls.input} value={tokenType} onChange={e => {
                 const type = e.target.value;
                 setTokenType(type);
-                if (type === 'USDC') setForm(f => ({ ...f, tokenAddress: ADDRESSES.PolUSDC }));
+                if (type === 'USDC')     setForm(f => ({ ...f, tokenAddress: ADDRESSES.PolUSDC }));
                 else if (type === 'DOT') setForm(f => ({ ...f, tokenAddress: ADDRESSES.PolDOT }));
-                else setForm(f => ({ ...f, tokenAddress: '' }));
+                else                     setForm(f => ({ ...f, tokenAddress: '' }));
               }}>
                 <option value="USDC">PolUSDC (6 dec)</option>
                 <option value="DOT">PolDOT (10 dec)</option>
@@ -141,32 +157,55 @@ export default function CreateModal({ onClose, onCreate }) {
               </select>
             </div>
             <div>
-              <label style={labelStyle}>Amount per cycle ({symbol})</label>
-              <input disabled={isBusy} style={inputStyle} type="number" min="1" step="0.01" placeholder="100" value={form.depositAmount} onChange={set('depositAmount')} />
+              <label className={cls.label}>Amount per cycle ({symbol})</label>
+              <input
+                disabled={isBusy}
+                className={cls.input}
+                type="number" min="1" step="0.01" placeholder="100"
+                value={form.depositAmount} onChange={set('depositAmount')}
+              />
             </div>
           </div>
 
-          <label style={labelStyle}>{tokenType === 'Custom' ? 'Token contract address' : `${tokenType} Address`}</label>
-          <input disabled={isBusy || tokenType !== 'Custom'} style={{ ...inputStyle, marginBottom: 20, fontFamily: "'DM Mono',monospace", fontSize: 13, opacity: tokenType !== 'Custom' ? 0.6 : 1 }} placeholder="0x..." value={form.tokenAddress} onChange={set('tokenAddress')} />
+          {/* Token address */}
+          <label className={cls.label}>
+            {tokenType === 'Custom' ? 'Token contract address' : `${tokenType} Address`}
+          </label>
+          <input
+            disabled={isBusy || tokenType !== 'Custom'}
+            className={cn(cls.input, 'mb-5 font-mono text-[13px]', tokenType !== 'Custom' && 'opacity-60')}
+            placeholder="0x..."
+            value={form.tokenAddress} onChange={set('tokenAddress')}
+          />
 
           {/* Pot preview */}
-          <div style={{ background: T.pinkDim, border: `1px solid ${T.pinkD}50`, borderRadius: 10, padding: '16px 18px', marginBottom: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <span style={{ color: T.muted, fontSize: 13 }}>Total pot per cycle</span>
-              <span style={{ fontFamily: "'Sora',sans-serif", fontSize: 28, fontWeight: 700, color: T.pink }}>{$(pot, '')} <span style={{fontSize: 14}}>{symbol}</span></span>
+          <div
+            className="rounded-xl p-4 mb-5"
+            style={{ background: 'var(--pink-dim)', borderColor: 'var(--pink-d)50' }}
+          >
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-muted text-[13px]">Total pot per cycle</span>
+              <span className="font-sora text-2xl font-bold text-pink">
+                {$(pot, '')} <span className="text-sm font-normal">{symbol}</span>
+              </span>
             </div>
-            <div style={{ color: T.muted, fontSize: 12 }}>{form.memberCap} members × {$(amt, '')} {symbol} — each member wins once</div>
+            <div className="text-muted text-xs">{form.memberCap} members × {$(amt, '')} {symbol} — each member wins once</div>
           </div>
 
-          {errorInfo && <div style={{ background: T.errBg, border: `1px solid ${T.errBdr}`, color: T.err, borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>{errorInfo}</div>}
+          {errorInfo && (
+            <div className="bg-err-bg border border-err-bdr text-err rounded-lg px-3.5 py-2.5 text-[13px] mb-4">
+              {errorInfo}
+            </div>
+          )}
 
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={onClose} disabled={isBusy} style={{ flex: 1, padding: 12, borderRadius: 8, border: `1px solid ${T.border}`, color: T.muted, fontSize: 14, background: 'none', cursor: isBusy ? 'not-allowed' : 'pointer', fontFamily: sans, transition: 'background .15s' }}
-              onMouseEnter={e => !isBusy && (e.currentTarget.style.background = T.card)}
-              onMouseLeave={e => !isBusy && (e.currentTarget.style.background = 'none')}>
+          <div className="flex gap-2.5">
+            <button
+              onClick={onClose} disabled={isBusy}
+              className={cn(cls.btnGhost, 'flex-1 py-3 rounded-lg text-sm')}
+            >
               Cancel
             </button>
-            <GoldButton onClick={submit} disabled={!valid || isBusy} style={{ flex: 2, padding: 12, fontSize: 14 }}>
+            <GoldButton onClick={submit} disabled={!valid || isBusy} style={{ flex: 2, padding: '12px' }}>
               {isBusy && <Spinner size={14} color="#fff" />}
               {isWriting ? 'Confirm in Wallet...' : isConfirming ? 'Deploying...' : 'Create Circle'}
             </GoldButton>

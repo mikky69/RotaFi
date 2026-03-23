@@ -1,54 +1,59 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { T, sans } from '../theme.js';
+import { COLORS, cls, cn } from '../theme.js';
 import { Ring, Tag, GoldButton, Empty } from '../components/ui.jsx';
 
 const $ = (n, sym = '$') => sym + Number(n||0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
 
-// Card view for mobile / compact display
+
 function CircleCard({ circle }) {
   const pct  = circle.totalRounds > 0 ? circle.currentRound/circle.totalRounds : 0;
   const paid = circle.roster?.filter(m=>m.hasPaid).length || 0;
+  
   return (
-    <Link to={`/app/circle/${circle.id}`} style={{ textDecoration:'none', display:'block' }}>
-      <div style={{ background:T.card, border:`1px solid ${!circle.hasPaid ? T.errBdr : T.border}`, borderRadius:12, padding:'16px', transition:'all .15s' }}
-        onMouseEnter={e=>{ e.currentTarget.style.background=T.cardH; e.currentTarget.style.borderColor=!circle.hasPaid?T.err:T.borderH; }}
-        onMouseLeave={e=>{ e.currentTarget.style.background=T.card; e.currentTarget.style.borderColor=!circle.hasPaid?T.errBdr:T.border; }}>
-        <div style={{ display:'flex', alignItems:'flex-start', gap:12, marginBottom:12 }}>
-          <div style={{ position:'relative', flexShrink:0 }}>
+    <Link to={`/app/circle/${circle.id}`} className="block">
+      <div
+        className={cn(cls.card, "p-4 cursor-pointer transition-all")}
+        style={{ borderColor: !circle.hasPaid ? COLORS.errBdr : undefined }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--card-h)'; e.currentTarget.style.borderColor = !circle.hasPaid ? COLORS.err : 'var(--border-h)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'var(--card)'; e.currentTarget.style.borderColor = !circle.hasPaid ? COLORS.errBdr : 'var(--border)'; }}
+      >
+        <div className="flex items-start gap-3 mb-3">
+          <div className="relative shrink-0">
             <Ring pct={pct} size={48} strokeWidth={3.5}/>
-            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
-              <span style={{ fontSize:11, fontWeight:700, color:T.text, lineHeight:1 }}>{circle.currentRound}</span>
-              <span style={{ fontSize:8, color:T.muted }}>/{circle.totalRounds}</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-[11px] font-bold text-ink leading-none">{circle.currentRound}</span>
+              <span className="text-[8px] text-muted">/{circle.totalRounds}</span>
             </div>
           </div>
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontFamily:"'Sora',sans-serif", fontSize:14, fontWeight:600, color:T.text, marginBottom:4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{circle.name}</div>
-            <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' }}>
-              {circle.isAdmin && <Tag color={T.pink}>Admin</Tag>}
-              <span style={{ color:T.muted, fontSize:12 }}>{circle.cycleLabel} · {$(circle.depositAmount, '')} {circle.tokenSymbol || 'USDC'}</span>
+          <div className="flex-1 min-w-0">
+            <div className="font-sora text-[14px] font-semibold text-ink truncate mb-1">{circle.name}</div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {circle.isAdmin && <Tag color={COLORS.pink}>Admin</Tag>}
+              <span className="text-muted text-xs">{circle.cycleLabel} · {$(circle.depositAmount,'')} {circle.tokenSymbol||'USDC'}</span>
             </div>
           </div>
-          <div style={{ flexShrink:0 }}>
-            {!circle.hasPaid ? <Tag color={T.err}>Due</Tag> : <Tag color={T.ok}>Paid</Tag>}
+          <div className="shrink-0">
+            {!circle.hasPaid ? <Tag color={COLORS.err}>Due</Tag> : <Tag color={COLORS.ok}>Paid</Tag>}
           </div>
         </div>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div className="flex items-end justify-between">
           <div>
-            <div style={{ color:T.muted, fontSize:11, marginBottom:3 }}>Pot ({circle.tokenSymbol || 'USDC'})</div>
-            <div style={{ fontFamily:"'Sora',sans-serif", fontSize:18, fontWeight:700, color:T.pink }}>{$(circle.pot, '')}</div>
+            <div className="text-muted text-[11px] mb-1">Pot ({circle.tokenSymbol||'USDC'})</div>
+            <div className="font-sora text-lg font-bold text-pink">{$(circle.pot,'')}</div>
           </div>
-          <div style={{ textAlign:'center' }}>
-            <div style={{ color:T.muted, fontSize:11, marginBottom:3 }}>Deposits</div>
-            <div style={{ fontSize:13, fontWeight:500, color:T.text }}>{paid}/{circle.memberCount}</div>
-            <div style={{ marginTop:4, height:3, background:T.border, borderRadius:3, width:48 }}>
-              <div style={{ height:'100%', width:`${(paid/circle.memberCount)*100}%`, background:paid===circle.memberCount?T.ok:T.pink, borderRadius:3 }}/>
+          <div className="text-center">
+            <div className="text-muted text-[11px] mb-1">Deposits</div>
+            <div className="text-[13px] font-medium text-ink mb-1.5">{paid}/{circle.memberCount}</div>
+            <div className="h-[3px] w-12 bg-border rounded-full overflow-hidden">
+              <div className="h-full rounded-full transition-all"
+                style={{ width: `${(paid/circle.memberCount)*100}%`, background: paid===circle.memberCount ? COLORS.ok : COLORS.pink }} />
             </div>
           </div>
-          <div style={{ textAlign:'right' }}>
-            <div style={{ color:T.muted, fontSize:11, marginBottom:3 }}>My turn</div>
-            <div style={{ fontSize:13, color:T.text }}>{circle.myTurnLabel}</div>
-            <div style={{ fontSize:11, color:T.muted }}>Pos. #{circle.myPosition}</div>
+          <div className="text-right">
+            <div className="text-muted text-[11px] mb-1">My turn</div>
+            <div className="text-[13px] text-ink">{circle.myTurnLabel}</div>
+            <div className="text-[11px] text-muted">Pos. #{circle.myPosition}</div>
           </div>
         </div>
       </div>
@@ -66,42 +71,49 @@ export default function MyCirclesPage({ circles, onCreateCircle }) {
   });
 
   return (
-    <div style={{ padding:'20px 16px', animation:'fadeUp .3s ease both' }}>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}>
+    <div className="p-4 sm:p-8" style={{ animation: 'fadeUp .3s ease both' }}>
+      <div className="flex justify-between items-start mb-5">
         <div>
-          <h1 style={{ fontFamily:"'Sora',sans-serif", fontSize:20, fontWeight:700, color:T.text, marginBottom:3 }}>My Circles</h1>
-          <p style={{ color:T.muted, fontSize:13 }}>
+          <h1 className="font-sora text-xl font-bold text-ink mb-1">My Circles</h1>
+          <p className="text-muted text-[13px]">
             {circles.length} circle{circles.length!==1?'s':''}
-            {pending > 0 && <span style={{ color:T.err, marginLeft:8 }}>{pending} due</span>}
+            {pending > 0 && <span className="text-err ml-2">{pending} due</span>}
           </p>
         </div>
-        <GoldButton onClick={onCreateCircle} style={{ padding:'9px 16px', fontSize:13, borderRadius:8 }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        <GoldButton onClick={onCreateCircle} style={{ padding: '9px 16px', fontSize: 13 }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
           New
         </GoldButton>
       </div>
 
-      {/* Filter */}
-      <div style={{ display:'flex', gap:4, marginBottom:16, background:T.card, border:`1px solid ${T.border}`, borderRadius:9, padding:4, width:'fit-content' }}>
+      {/* Filter tabs */}
+      <div className="flex gap-1 bg-card border border-border rounded-xl p-1 w-fit mb-4">
         {[['all','All'],['pending','Due'],['active','Paid']].map(([val,lbl]) => (
           <button key={val} onClick={() => setFilter(val)}
-            style={{ padding:'6px 14px', borderRadius:6, fontSize:13, fontWeight:500, fontFamily:sans, cursor:'pointer', transition:'all .15s',
-              background: filter===val ? T.pinkDim : 'transparent',
-              color:      filter===val ? T.pink : T.muted,
-              border:     filter===val ? `1px solid ${T.pinkD}50` : '1px solid transparent' }}>
+            className={cn(
+              'px-3.5 py-1.5 rounded-lg text-[13px] font-medium cursor-pointer transition-all',
+              filter===val
+                ? 'text-pink font-semibold'
+                : 'text-muted hover:text-ink'
+            )}
+            style={filter===val ? { background:'var(--pink-dim)', borderColor:'var(--pink-d)50' } : undefined}
+          >
             {lbl}
-            {val==='pending' && pending>0 && (
-              <span style={{ marginLeft:5, background:T.err, color:'#fff', fontSize:10, fontWeight:700, padding:'1px 5px', borderRadius:10 }}>{pending}</span>
+            {val==='pending' && pending > 0 && (
+              <span className="ml-1.5 bg-err text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{pending}</span>
             )}
           </button>
         ))}
       </div>
 
-      <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+      <div className="flex flex-col gap-2.5">
         {filtered.length === 0
-          ? <Empty message={filter==='all' ? 'No circles yet. Create or join one.' : 'Nothing here.'} cta={filter==='all'
-              ? <GoldButton onClick={onCreateCircle} style={{ fontSize:13, padding:'9px 18px', margin:'0 auto' }}>Create your first circle</GoldButton>
-              : null} />
+          ? <Empty
+              message={filter==='all' ? 'No circles yet. Create or join one.' : 'Nothing here.'}
+              cta={filter==='all'
+                ? <GoldButton onClick={onCreateCircle} style={{ fontSize:13, padding:'9px 18px', margin:'0 auto' }}>Create your first circle</GoldButton>
+                : null}
+            />
           : filtered.map(c => <CircleCard key={c.id} circle={c} />)
         }
       </div>

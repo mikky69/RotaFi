@@ -1,86 +1,128 @@
 import React, { useEffect } from 'react';
-import { T, sans } from '../theme.js';
+import { COLORS, cls, cn } from '../theme.js';
 
-export function Spinner({ size = 15, color = T.bg }) {
+export function Spinner({ size = 15, color }) {
   return (
-    <div style={{ width: size, height: size, borderRadius: '50%', border: `2px solid ${color}40`, borderTopColor: color, animation: 'spin .65s linear infinite', flexShrink: 0 }} />
+    <div
+      className="rounded-full border-2 shrink-0"
+      style={{
+        width: size,
+        height: size,
+        borderColor: (color || 'currentColor') + '40',
+        borderTopColor: color || 'currentColor',
+        animation: 'spin 0.65s linear infinite',
+      }}
+    />
   );
 }
 
-export function Badge({ label, color, bg, border }) {
+export function Ring({ pct = 0, size = 80, strokeWidth = 5, color }) {
+  const r    = (size - strokeWidth) / 2;
+  const circ = 2 * Math.PI * r;
+  const dash = circ * Math.min(Math.max(pct, 0), 1);
   return (
-    <span style={{ background: bg, color, border: `1px solid ${border || color + '40'}`, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 4, letterSpacing: '.03em', whiteSpace: 'nowrap', flexShrink: 0, fontFamily: sans }}>
-      {label}
-    </span>
-  );
-}
-
-export function Ring({ pct = 0, size = 80, strokeWidth = 5, color = T.pink }) {
-  const r = (size - strokeWidth) / 2;
-  const c = 2 * Math.PI * r;
-  const dash = c * Math.min(Math.max(pct, 0), 1);
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={T.border} strokeWidth={strokeWidth} />
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={strokeWidth}
-        strokeDasharray={`${dash} ${c}`} strokeLinecap="round"
-        style={{ transition: 'stroke-dasharray .5s ease' }} />
+    <svg
+      width={size} height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className="shrink-0 -rotate-90"
+    >
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={COLORS.border} strokeWidth={strokeWidth} />
+      <circle
+        cx={size/2} cy={size/2} r={r}
+        fill="none"
+        stroke={color || COLORS.pink}
+        strokeWidth={strokeWidth}
+        strokeDasharray={`${dash} ${circ}`}
+        strokeLinecap="round"
+        style={{ transition: 'stroke-dasharray .5s ease' }}
+      />
     </svg>
   );
 }
 
 export function Toast({ message, type = 'success', onClose }) {
-  const ok  = type === 'success';
-  const bg  = ok ? T.okBg  : T.errBg;
-  const bdr = ok ? T.okBdr : T.errBdr;
-  const clr = ok ? T.ok    : T.err;
+  const ok = type === 'success';
   useEffect(() => { const t = setTimeout(onClose, 4500); return () => clearTimeout(t); }, [onClose]);
   return (
-    <div style={{ position:'fixed', bottom:24, right:24, zIndex:9999, background:'var(--card)', border:`1px solid ${bdr}`, padding:'13px 18px', borderRadius:10, fontSize:14, display:'flex', alignItems:'center', gap:10, maxWidth:380, animation:'fadeIn .2s ease', boxShadow:'0 8px 40px rgba(0,0,0,.7)', fontFamily:sans }}>
-      <div style={{ width:8, height:8, borderRadius:'50%', background:clr, flexShrink:0, animation:'pulseDot 2s infinite' }} />
-      <span style={{ flex:1, color:T.text }}>{message}</span>
-      <button onClick={onClose} style={{ color:T.muted, fontSize:18, lineHeight:1, cursor:'pointer' }}>&#x2715;</button>
+    <div
+      className={cn(
+        'fixed bottom-6 right-6 z-[9999]',
+        'flex items-center gap-3 max-w-sm px-4 py-3 rounded-xl border shadow-2xl',
+        cn(cls.card, ok ? 'border-ok-bdr' : 'border-err-bdr')
+      )}
+      style={{ animation: 'fadeIn .2s ease' }}
+    >
+      <div
+        className={cn('w-2 h-2 rounded-full shrink-0', ok ? 'bg-ok' : 'bg-err')}
+        style={{ animation: 'pulseDot 2s infinite' }}
+      />
+      <span className="flex-1 text-ink text-sm">{message}</span>
+      <button onClick={onClose} className="text-muted text-lg leading-none cursor-pointer hover:text-ink transition-colors">
+        &#x2715;
+      </button>
     </div>
   );
 }
 
 export function Metric({ label, value, accent, sub }) {
   return (
-    <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:10, padding:'18px 20px' }}>
-      <div style={{ color:T.muted, fontSize:11, fontWeight:500, marginBottom:10, textTransform:'uppercase', letterSpacing:'.06em' }}>{label}</div>
-      <div style={{ fontSize:26, fontWeight:600, color:accent || T.text, fontFamily:"'Sora',sans-serif", lineHeight:1.1 }}>{value}</div>
-      {sub && <div style={{ color:T.muted, fontSize:12, marginTop:6 }}>{sub}</div>}
+    <div className={cn(cls.card, 'p-4 sm:p-5')}>
+      <div className="text-muted text-[11px] font-medium uppercase tracking-widest mb-2">{label}</div>
+      <div
+        className="font-sora text-2xl font-semibold leading-tight"
+        style={{ color: accent || 'var(--text)' }}
+      >
+        {value}
+      </div>
+      {sub && <div className="text-muted text-xs mt-1.5">{sub}</div>}
     </div>
   );
 }
 
-export function GoldButton({ children, onClick, disabled, style: extra, variant = 'pink' }) {
-  const bg = variant === 'pink' ? T.pink : T.card;
-  const cl = variant === 'pink' ? '#fff' : T.text;
+export function GoldButton({ children, onClick, disabled, style: extra, variant = 'pink', className: extra_cls }) {
   return (
-    <button onClick={onClick} disabled={disabled}
-      style={{ background: disabled ? T.dim : bg, color: disabled ? T.muted : cl, border: variant === 'ghost' ? `1px solid ${T.border}` : 'none', borderRadius:8, padding:'11px 20px', fontSize:14, fontWeight:500, display:'flex', alignItems:'center', justifyContent:'center', gap:8, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? .6 : 1, transition:'all .15s', fontFamily:sans, whiteSpace:'nowrap', ...extra }}>
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        variant === 'pink' ? cls.btnPink : cls.btnGhost,
+        'px-5 py-2.5 text-sm',   /* default sizing — overridable via style prop */
+        extra_cls
+      )}
+      style={extra}
+    >
       {children}
     </button>
   );
 }
 
 export function Avatar({ name = '?', size = 32, active = false }) {
-  const initials = name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   return (
-    <div style={{ width:size, height:size, borderRadius:'50%', background: active ? T.pinkDim : T.card, border:`1.5px solid ${active ? T.pink : T.border}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:size*.33, fontWeight:600, color: active ? T.pink : T.muted, flexShrink:0, fontFamily:sans }}>
+    <div
+      className={cn(
+        'rounded-full flex items-center justify-center font-semibold shrink-0',
+        active ? 'text-pink border-[1.5px] border-pink' : 'text-muted border-[1.5px] border-border'
+      )}
+      style={{
+        width: size,
+        height: size,
+        fontSize: size * 0.33,
+        background: active ? 'var(--pink-dim)' : 'var(--card)',
+      }}
+    >
       {initials}
     </div>
   );
 }
 
-export function Divider({ margin = '0' }) {
-  return <div style={{ borderTop:`1px solid ${T.border}`, margin }} />;
-}
-
-export function Tag({ children, color = T.pink }) {
+export function Tag({ children, color }) {
+  const c = color || COLORS.pink;
   return (
-    <span style={{ background: color + '18', color, fontSize:11, fontWeight:500, padding:'3px 10px', borderRadius:20, letterSpacing:'.02em', whiteSpace:'nowrap', border:`1px solid ${color}30` }}>
+    <span
+      className="inline-flex items-center text-[11px] font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap"
+      style={{ background: c + '18', color: c, border: `1px solid ${c}30` }}
+    >
       {children}
     </span>
   );
@@ -88,18 +130,37 @@ export function Tag({ children, color = T.pink }) {
 
 export function StatusDot({ active }) {
   return (
-    <div style={{ width:7, height:7, borderRadius:'50%', background: active ? T.ok : T.muted, flexShrink:0, boxShadow: active ? `0 0 6px ${T.ok}` : 'none' }} />
+    <div
+      className={cn('w-[7px] h-[7px] rounded-full shrink-0', active ? 'bg-ok' : 'bg-muted')}
+      style={active ? { boxShadow: '0 0 6px var(--ok)' } : undefined}
+    />
   );
 }
 
 export function Empty({ message, cta }) {
   return (
-    <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:12, padding:'48px 24px', textAlign:'center' }}>
-      <div style={{ width:48, height:48, borderRadius:12, background:T.pinkDim, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px', fontSize:22 }}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={T.pink} strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+    <div className={cn(cls.card, 'py-12 px-6 text-center')}>
+      <div
+        className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
+        style={{ background: 'var(--pink-dim)' }}
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={COLORS.pink} strokeWidth="2">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+        </svg>
       </div>
-      <p style={{ color:T.muted, fontSize:14, lineHeight:1.7, marginBottom: cta ? 20 : 0 }}>{message}</p>
+      <p className="text-muted text-sm leading-relaxed" style={{ marginBottom: cta ? 20 : 0 }}>{message}</p>
       {cta}
     </div>
+  );
+}
+
+export function Badge({ label, color, bg, border }) {
+  return (
+    <span
+      className="text-[11px] font-medium px-2 py-0.5 rounded whitespace-nowrap shrink-0"
+      style={{ background: bg, color, border: `1px solid ${border || color + '40'}`, letterSpacing: '.03em' }}
+    >
+      {label}
+    </span>
   );
 }
