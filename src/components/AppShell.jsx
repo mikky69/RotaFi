@@ -1,97 +1,28 @@
-/**
- * AppShell.jsx
- * Desktop  : fixed 228px sidebar
- * Tablet   : icon-only 58px sidebar
- * Mobile   : sticky top bar + fixed bottom tab bar
- *
- * Dark/light toggle appears in sidebar footer (desktop/tablet)
- * and in the mobile top bar (next to the avatar).
- */
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { T, sans } from '../theme.js';
+import { cn } from '../theme.js';
 import { useAppState } from '../hooks/useAppState.jsx';
 import { useTheme } from '../hooks/useTheme.jsx';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const NAV = [
-  { path: '/app', exact: true, label: 'Overview', icon: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
+  { path: '/app',         exact: true,  label: 'Overview',   icon: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
   { path: '/app/circles', exact: false, label: 'My Circles', icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2|M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8' },
-  { path: '/app/join', exact: false, label: 'Join', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M12 3a4 4 0 0 1 0 8|M19 8v6M22 11h-6' },
-  { path: '/app/history', exact: false, label: 'History', icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z|M14 2v6h6|M16 13H8|M16 17H8|M10 9H8' },
-  { path: '/app/profile', exact: false, label: 'Profile', icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2|M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8' },
+  { path: '/app/join',    exact: false, label: 'Join',        icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M12 3a4 4 0 0 1 0 8|M19 8v6M22 11h-6' },
+  { path: '/app/history', exact: false, label: 'History',     icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z|M14 2v6h6|M16 13H8|M16 17H8|M10 9H8' },
+  { path: '/app/profile', exact: false, label: 'Profile',     icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2|M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8' },
 ];
 
-function Ico({ d, size = 18 }) {
+function Ico({ d, size = 18, className = '' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+      className={cn('shrink-0', className)}>
       {d.split('|').map((p, i) => <path key={i} d={p} />)}
     </svg>
   );
 }
 
-// ── Theme toggle button ───────────────────────────────────────────────────────
-function ThemeToggle({ collapsed }) {
-  const { isDark, toggle } = useTheme();
-  const [hov, setHov] = useState(false);
-
-  const sunPath = 'M12 4.354a4 4 0 1 1 0 15.292M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41';
-  const moonPath = 'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z';
-  const label = isDark ? 'Light mode' : 'Dark mode';
-
-  return (
-    <button
-      onClick={toggle}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      title={label}
-      aria-label={label}
-      style={{
-        width: '100%',
-        padding: collapsed ? '9px 0' : '8px 12px',
-        borderRadius: 7,
-        border: `1px solid ${hov ? T.borderH : T.border}`,
-        color: hov ? T.text : T.muted,
-        background: hov ? T.card : 'transparent',
-        fontSize: 13, fontFamily: sans, cursor: 'pointer',
-        display: 'flex', alignItems: 'center',
-        justifyContent: collapsed ? 'center' : 'flex-start',
-        gap: collapsed ? 0 : 8,
-        transition: 'all .15s',
-        marginBottom: 6,
-      }}
-    >
-      <Ico d={isDark ? sunPath : moonPath} size={15} />
-      {!collapsed && label}
-    </button>
-  );
-}
-
-// ── Inline toggle for mobile top bar ─────────────────────────────────────────
-function ThemeToggleIcon() {
-  const { isDark, toggle } = useTheme();
-  const sunPath = 'M12 4.354a4 4 0 1 1 0 15.292M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41';
-  const moonPath = 'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z';
-  return (
-    <button
-      onClick={toggle}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      style={{
-        width: 34, height: 34, borderRadius: 8,
-        border: `1px solid ${T.border}`,
-        background: T.card,
-        color: T.muted,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'pointer', flexShrink: 0,
-      }}
-    >
-      <Ico d={isDark ? sunPath : moonPath} size={16} />
-    </button>
-  );
-}
-
-// ── Breakpoint hook ───────────────────────────────────────────────────────────
 function useBreakpoint() {
   const [w, setW] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
   useEffect(() => {
@@ -102,66 +33,94 @@ function useBreakpoint() {
   return { isMobile: w < 640, isTablet: w >= 640 && w < 1024 };
 }
 
-// ── Sidebar nav item ──────────────────────────────────────────────────────────
+const SUN  = 'M12 4.354a4 4 0 1 1 0 15.292M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41';
+const MOON = 'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z';
+
+function ThemeToggle({ collapsed }) {
+  const { isDark, toggle } = useTheme();
+  return (
+    <button
+      onClick={toggle}
+      title={isDark ? 'Light mode' : 'Dark mode'}
+      className={cn(
+        'w-full flex items-center gap-2 rounded-lg text-muted text-sm cursor-pointer',
+        'border border-transparent hover:border-border hover:bg-card hover:text-ink',
+        'transition-all mb-1.5',
+        collapsed ? 'justify-center px-2 py-2' : 'px-3 py-2'
+      )}
+    >
+      <Ico d={isDark ? SUN : MOON} size={15} />
+      {!collapsed && (isDark ? 'Light mode' : 'Dark mode')}
+    </button>
+  );
+}
+
+function ThemeToggleIcon() {
+  const { isDark, toggle } = useTheme();
+  return (
+    <button
+      onClick={toggle}
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      className="w-[34px] h-[34px] rounded-lg border border-border bg-card text-muted flex items-center justify-center cursor-pointer hover:text-ink transition-colors shrink-0"
+    >
+      <Ico d={isDark ? SUN : MOON} size={16} />
+    </button>
+  );
+}
+
 function SidebarItem({ item, collapsed }) {
-  const location = useLocation();
-  const [hov, setHov] = useState(false);
-  const isActive = item.exact
+  const location  = useLocation();
+  const isActive  = item.exact
     ? location.pathname === item.path
     : location.pathname.startsWith(item.path);
 
   return (
-    <Link to={item.path}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
+    <Link
+      to={item.path}
       title={collapsed ? item.label : undefined}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none',
-        padding: collapsed ? '9px 10px' : '9px 12px',
-        justifyContent: collapsed ? 'center' : 'flex-start',
-        borderRadius: 8,
-        background: isActive ? T.pinkDim : hov ? T.card : 'transparent',
-        color: isActive ? T.pink : hov ? T.text : T.muted,
-        border: isActive ? `1px solid ${T.pinkD}50` : '1px solid transparent',
-        transition: 'all .15s',
-        fontFamily: sans, fontSize: 14, fontWeight: isActive ? 500 : 400,
-        whiteSpace: 'nowrap', overflow: 'hidden',
-      }}>
-      <span style={{ flexShrink: 0 }}><Ico d={item.icon} size={16} /></span>
-      {!collapsed && <span style={{ flex: 1 }}>{item.label}</span>}
+      className={cn(
+        'flex items-center gap-2.5 rounded-lg text-sm transition-all overflow-hidden whitespace-nowrap',
+        collapsed ? 'justify-center px-2.5 py-2' : 'px-3 py-2.5',
+        isActive
+          ? 'text-pink font-medium'
+          : 'text-muted hover:bg-card hover:text-ink'
+      )}
+      style={isActive ? { background: 'var(--pink-dim)', borderColor: 'var(--pink-d)50' } : undefined}
+    >
+      <span className="shrink-0"><Ico d={item.icon} size={16} /></span>
+      {!collapsed && <span className="flex-1">{item.label}</span>}
       {!collapsed && isActive && (
-        <div style={{ width: 5, height: 5, borderRadius: '50%', background: T.pink, flexShrink: 0 }} />
+        <div className="w-1.5 h-1.5 rounded-full bg-pink shrink-0" />
       )}
     </Link>
   );
 }
 
-// ── Bottom tab bar ────────────────────────────────────────────────────────────
 function BottomBar() {
   const location = useLocation();
   return (
-    <nav style={{
-      position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200,
-      background: T.sidebar, borderTop: `1px solid ${T.border}`,
-      display: 'flex', height: 60,
-      paddingBottom: 'env(safe-area-inset-bottom)',
-    }}>
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-[200] bg-sidebar border-t border-border flex h-[60px]"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
       {NAV.map(item => {
         const isActive = item.exact
           ? location.pathname === item.path
           : location.pathname.startsWith(item.path);
         return (
-          <Link key={item.path} to={item.path} style={{
-            flex: 1, display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center', gap: 4,
-            textDecoration: 'none',
-            color: isActive ? T.pink : T.muted,
-            background: isActive ? T.pinkDim : 'transparent',
-            borderTop: isActive ? `2px solid ${T.pink}` : '2px solid transparent',
-            transition: 'all .15s',
-          }}>
+          <Link
+            key={item.path} to={item.path}
+            className={cn(
+              'flex-1 flex flex-col items-center justify-center gap-1 transition-all',
+              'border-t-2',
+              isActive
+                ? 'text-pink border-pink'
+                : 'text-muted border-transparent hover:text-ink'
+            )}
+            style={isActive ? { background: 'var(--pink-dim)' } : undefined}
+          >
             <Ico d={item.icon} size={20} />
-            <span style={{ fontSize: 10, fontWeight: isActive ? 600 : 400, letterSpacing: '.02em' }}>
+            <span className={cn('text-[10px] tracking-tight', isActive ? 'font-semibold' : 'font-normal')}>
               {item.label}
             </span>
           </Link>
@@ -171,69 +130,75 @@ function BottomBar() {
   );
 }
 
-// ── Custom Connect Button ─────────────────────────────────────────────────────
 function CustomConnect({ collapsed }) {
   return (
     <ConnectButton.Custom>
       {({ account, chain, openAccountModal, openChainModal, openConnectModal, mounted }) => {
-        const ready = mounted;
+        const ready     = mounted;
         const connected = ready && account && chain;
-
         if (!ready) return null;
 
         if (!connected) {
           return (
-            <button onClick={openConnectModal} type="button" style={{
-              width: '100%', padding: collapsed ? '9px 0' : '9px 12px',
-              borderRadius: 8, border: 'none', background: T.pink, color: '#fff',
-              fontSize: 13, fontWeight: 600, fontFamily: sans, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              transition: 'background .15s'
-            }}>
-              {collapsed ? <Ico d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z|M12 9v4|M12 17h.01" size={16} /> : 'Connect'}
+            <button
+              onClick={openConnectModal} type="button"
+              className={cn(
+                'w-full flex items-center justify-center gap-1.5 rounded-lg',
+                'bg-pink text-white text-sm font-semibold cursor-pointer hover:bg-pink-l transition-colors',
+                collapsed ? 'px-2 py-2' : 'px-3 py-2.5'
+              )}
+            >
+              {collapsed
+                ? <Ico d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z|M12 9v4|M12 17h.01" size={16} />
+                : 'Connect'}
             </button>
           );
         }
 
         if (chain.unsupported) {
           return (
-            <button onClick={openChainModal} type="button" style={{
-              width: '100%', padding: collapsed ? '9px 0' : '9px 12px',
-              borderRadius: 8, border: `1px solid ${T.err}`, background: T.errBg, color: T.err,
-              fontSize: 13, fontWeight: 600, fontFamily: sans, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            }}>
-              {collapsed ? <Ico d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" size={16} /> : 'Wrong network'}
+            <button
+              onClick={openChainModal} type="button"
+              className={cn(
+                'w-full flex items-center justify-center gap-1.5 rounded-lg',
+                'border border-err bg-err-bg text-err text-sm font-semibold cursor-pointer',
+                collapsed ? 'px-2 py-2' : 'px-3 py-2.5'
+              )}
+            >
+              {collapsed
+                ? <Ico d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" size={16} />
+                : 'Wrong network'}
             </button>
           );
         }
 
         return (
-          <div style={{ display: 'flex', flexDirection: collapsed ? 'column' : 'row', gap: 6, width: '100%' }}>
+          <div className={cn('flex gap-1.5 w-full', collapsed ? 'flex-col' : 'flex-row')}>
             <button
               onClick={openChainModal}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: collapsed ? '8px 0' : '8px 10px', borderRadius: 8, background: T.card, border: `1px solid ${T.border}`, cursor: 'pointer', transition: 'all .15s' }}
               title={chain.name}
+              className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg bg-card border border-border cursor-pointer hover:border-border-h transition-colors"
             >
               {chain.hasIcon && (
-                <div style={{ background: chain.iconBackground, width: 16, height: 16, borderRadius: '50%', overflow: 'hidden' }}>
-                  {chain.iconUrl && <img alt={chain.name ?? 'Chain icon'} src={chain.iconUrl} style={{ width: 16, height: 16 }} />}
+                <div className="w-4 h-4 rounded-full overflow-hidden" style={{ background: chain.iconBackground }}>
+                  {chain.iconUrl && <img alt={chain.name ?? 'Chain'} src={chain.iconUrl} className="w-4 h-4" />}
                 </div>
               )}
-              {!collapsed && <span style={{ color: T.text, fontSize: 13, fontWeight: 500, fontFamily: sans }}>{chain.name}</span>}
+              {!collapsed && <span className="text-ink text-[13px] font-medium font-sans">{chain.name}</span>}
             </button>
 
-            <button onClick={openAccountModal} type="button" style={{
-              flex: 1, padding: collapsed ? '8px 0' : '8px 12px', borderRadius: 8, background: T.surface, border: `1px solid ${T.border}`, cursor: 'pointer', transition: 'all .15s',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
-            }}>
-              <div style={{ width: 22, height: 22, borderRadius: '50%', background: T.pinkDim, border: `1px solid ${T.pink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                {account.ensAvatar ? <img src={account.ensAvatar} alt="ENS" style={{ width: 20, height: 20 }} /> : <span style={{ fontSize: 10, fontWeight: 700, color: T.pink }}>{account.displayName.slice(0, 2)}</span>}
+            <button
+              onClick={openAccountModal} type="button"
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-surface border border-border cursor-pointer hover:border-border-h transition-colors"
+            >
+              <div className="w-[22px] h-[22px] rounded-full flex items-center justify-center overflow-hidden border border-pink"
+                style={{ background: 'var(--pink-dim)' }}>
+                {account.ensAvatar
+                  ? <img src={account.ensAvatar} alt="ENS" className="w-5 h-5" />
+                  : <span className="text-[10px] font-bold text-pink">{account.displayName.slice(0, 2)}</span>}
               </div>
               {!collapsed && (
-                <span style={{ color: T.text, fontSize: 13, fontWeight: 600, fontFamily: sans }}>
-                  {account.displayName}
-                </span>
+                <span className="text-ink text-[13px] font-semibold font-sans">{account.displayName}</span>
               )}
             </button>
           </div>
@@ -243,24 +208,14 @@ function CustomConnect({ collapsed }) {
   );
 }
 
-// ── Mobile top bar ────────────────────────────────────────────────────────────
 function MobileTopBar() {
   return (
-    <header style={{
-      position: 'sticky', top: 0, zIndex: 100,
-      background: T.sidebar,
-      borderBottom: `1px solid ${T.border}`,
-      height: 52, display: 'flex', alignItems: 'center',
-      justifyContent: 'space-between', padding: '0 16px', gap: 10,
-    }}>
-      <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}>
-        <div style={{ width: 26, height: 26, borderRadius: 7, background: T.transparent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <img src="/rotafi_logo.svg" alt="" width='26px' height='26px' />
-        </div>
-        <span style={{ fontFamily: "'Sora',sans-serif", fontSize: 16, fontWeight: 700, color: T.text }}>RotaFi</span>
+    <header className="sticky top-0 z-[100] bg-sidebar border-b border-border h-[52px] flex items-center justify-between px-4 gap-2.5">
+      <Link to="/" className="flex items-center gap-2 shrink-0">
+        <img src="/rotafi_logo.svg" alt="" width={26} height={26} />
+        <span className="font-sora text-base font-bold text-ink">RotaFi</span>
       </Link>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className="flex items-center gap-2">
         <ThemeToggleIcon />
         <CustomConnect collapsed={true} />
       </div>
@@ -268,79 +223,61 @@ function MobileTopBar() {
   );
 }
 
-// ── AppShell ──────────────────────────────────────────────────────────────────
 export default function AppShell({ children }) {
   const { isMobile, isTablet } = useBreakpoint();
   const collapsed = isTablet;
 
-  // ── Mobile ────────────────────────────────────────────────────────────────
   if (isMobile) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: T.bg }}>
+      <div className="flex flex-col min-h-screen bg-bg">
         <MobileTopBar />
-        <main style={{ flex: 1, overflowY: 'auto', paddingBottom: 70 }}>
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto pb-[70px]">{children}</main>
         <BottomBar />
       </div>
     );
   }
 
-  // ── Tablet / Desktop ──────────────────────────────────────────────────────
   return (
-    <div style={{ display: 'flex', height: '100vh', background: T.bg, overflow: 'hidden' }}>
-      <aside style={{
-        width: collapsed ? 58 : 228, flexShrink: 0,
-        background: T.sidebar, borderRight: `1px solid ${T.border}`,
-        display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden',
-        transition: 'width .2s ease',
-      }}>
-        {/* Logo → home */}
-        <Link to="/" title="Return to home" style={{
-          padding: collapsed ? '16px 10px' : '16px 14px 14px',
-          borderBottom: `1px solid ${T.border}`,
-          display: 'flex', alignItems: 'center', gap: 9,
-          textDecoration: 'none', transition: 'background .15s', flexShrink: 0,
-          justifyContent: collapsed ? 'center' : 'flex-start',
-          overflow: 'hidden',
-        }}
-          onMouseEnter={e => e.currentTarget.style.background = T.card}
-          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-          <div style={{ width: 30, height: 30, borderRadius: 9, background: T.transparent, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            {/* <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg> */}
-            <img src="/rotafi_logo.svg" alt="" width='64px' height='64px' />
-          </div>
+    <div className="flex h-screen bg-bg overflow-hidden">
+      <aside className={cn(
+        'flex flex-col h-full bg-sidebar border-r border-border shrink-0 overflow-hidden transition-[width] duration-200',
+        collapsed ? 'w-[58px]' : 'w-[228px]'
+      )}>
+        {/* Logo */}
+        <Link
+          to="/"
+          title="Return to home"
+          className={cn(
+            'flex items-center gap-2.5 border-b border-border overflow-hidden',
+            'hover:bg-card transition-colors shrink-0',
+            collapsed ? 'justify-center px-2.5 py-4' : 'px-3.5 py-4'
+          )}
+        >
+          <img src="/rotafi_logo.svg" alt="" width={collapsed ? 30 : 64} height={collapsed ? 30 : 64} className="shrink-0" />
           {!collapsed && (
             <div>
-              <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 15, fontWeight: 700, color: T.text, lineHeight: 1 }}>RotaFi</div>
-              <div style={{ fontSize: 10, color: T.pink, fontWeight: 600, letterSpacing: '.04em', marginTop: 2 }}>POLKADOT</div>
+              <div className="font-sora text-[15px] font-bold text-ink leading-none">RotaFi</div>
+              <div className="text-[10px] text-pink font-semibold tracking-widest mt-0.5">POLKADOT</div>
             </div>
           )}
         </Link>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: collapsed ? '10px 5px' : '10px 8px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <nav className={cn('flex-1 overflow-y-auto flex flex-col gap-0.5', collapsed ? 'p-1.5' : 'p-2')}>
           {!collapsed && (
-            <div style={{ color: T.muted, fontSize: 10, fontWeight: 600, letterSpacing: '.08em', padding: '6px 12px 8px', textTransform: 'uppercase' }}>App</div>
+            <div className="text-muted text-[10px] font-semibold uppercase tracking-widest px-3 py-1.5">App</div>
           )}
           {NAV.map(item => <SidebarItem key={item.path} item={item} collapsed={collapsed} />)}
         </nav>
 
-        {/* Bottom: theme toggle + wallet */}
-        <div style={{ padding: collapsed ? '8px 5px' : '10px 8px', borderTop: `1px solid ${T.border}`, flexShrink: 0 }}>
+        {/* Footer */}
+        <div className={cn('border-t border-border shrink-0', collapsed ? 'p-1.5' : 'p-2')}>
           <ThemeToggle collapsed={collapsed} />
           <CustomConnect collapsed={collapsed} />
         </div>
       </aside>
 
-      <main style={{ flex: 1, overflowY: 'auto', height: '100%' }}>
-        {children}
-      </main>
+      <main className="flex-1 overflow-y-auto h-full">{children}</main>
     </div>
   );
 }
